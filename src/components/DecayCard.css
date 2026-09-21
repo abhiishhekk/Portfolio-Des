@@ -1,0 +1,44 @@
+.decay-content {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  display: block;
+  user-select: none;
+}
+
+.decay-svg {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: block;
+  filter: grayscale(100%) contrast(1.08) brightness(0.9);
+  transition: filter 0.65s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: filter, transform;
+}
+
+/* On card hover, transition smoothly to vibrant original color with react-bits spring curve */
+.project-card:hover .decay-svg,
+.decay-content:hover .decay-svg {
+  filter: grayscale(0%) contrast(1) brightness(1);
+}
+
+/* Subtle cinematic vignette in B&W mode that clears on hover */
+.decay-content::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    ellipse at center,
+    transparent 50%,
+    rgba(0, 0, 0, 0.25) 100%
+  );
+  opacity: 0.6;
+  pointer-events: none;
+  transition: opacity 0.65s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.project-card:hover .decay-content::after,
+.decay-content:hover .decay-content::after {
+  opacity: 0;
+}
