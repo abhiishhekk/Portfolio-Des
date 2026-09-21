@@ -166,7 +166,6 @@ const buildTextCanvas = ({ container, width, height, dpr, props }) => {
   ctx.textAlign = 'left'
   ctx.textBaseline = 'middle'
 
-  // Resolve theme-reactive text color
   const isLight = typeof document !== 'undefined' && document.documentElement.getAttribute('data-theme') === 'light'
   let resolvedColor = isLight ? '#0a0a0a' : '#f5f5f5'
   if (props.color && !props.color.includes('var(') && props.color !== 'currentColor') {
@@ -177,7 +176,6 @@ const buildTextCanvas = ({ container, width, height, dpr, props }) => {
   ctx.imageSmoothingQuality = 'high'
 
   let lines = String(props.text || '').split('\n')
-  // On smartphones (under 540px width), split multi-word title so font size stays bold & punchy
   if (lines.length === 1 && width < 540 && props.text.includes(' ')) {
     lines = props.text.split(' ')
   }
@@ -487,7 +485,6 @@ export default function WarpText({
     )
     intersectionObserver.observe(container)
 
-    // Watch for theme toggle changes
     themeObserver = new MutationObserver(() => {
       rasterize()
     })
@@ -531,9 +528,7 @@ export default function WarpText({
           geometry?.remove?.()
           program?.remove?.()
           gl.getExtension('WEBGL_lose_context')?.loseContext()
-        } catch {
-          // ignore
-        }
+        } catch {}
       }
 
       if (canvas.parentNode === container) container.removeChild(canvas)

@@ -1,6 +1,3 @@
-/**
- * FadeContent — react-bits style fade + slide on scroll into view
- */
 import { useRef } from 'react'
 import { motion, useInView } from 'motion/react'
 
@@ -10,7 +7,7 @@ export default function FadeContent({
   style = {},
   delay = 0,
   duration = 0.55,
-  direction = 'up', // 'up' | 'down' | 'left' | 'right' | 'none'
+  direction = 'up',
   once = true,
   blur = false,
   threshold = 0.1,

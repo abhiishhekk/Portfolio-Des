@@ -74,7 +74,6 @@ export default function Projects() {
       <div className="container">
         <div className="divider" style={{ marginBottom: '100px' }} />
 
-        {/* Centered Section Header */}
         <div className="section-header-center">
           <FadeContent delay={0}>
             <span className="section-label">Projects</span>
@@ -117,7 +116,6 @@ export default function Projects() {
                   }}
                   aria-label={`Open ${project.title} on GitHub`}
                 >
-                  {/* DecayCard interactive disintegration banner */}
                   <div className="project-card-img">
                     <DecayCard
                       id={project.id}

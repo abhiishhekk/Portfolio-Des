@@ -23,7 +23,6 @@ export default function Nav({ theme, toggleTheme }) {
     updateIndicator(active)
   }, [active])
 
-  // Close mobile menu on click outside
   useEffect(() => {
     function handleOutsideClick(e) {
       if (menuRef.current && !menuRef.current.contains(e.target)) {
@@ -40,7 +39,6 @@ export default function Nav({ theme, toggleTheme }) {
     }
   }, [mobileMenuOpen])
 
-  // Scroll spy
   useEffect(() => {
     const sections = NAV_ITEMS.map(i => ({
       id: i.href.replace('#', ''),
@@ -89,7 +87,6 @@ export default function Nav({ theme, toggleTheme }) {
 
   return (
     <header className="nav-container" ref={menuRef}>
-      {/* Desktop Navigation Pill */}
       <nav className="nav nav-desktop" role="navigation" aria-label="Main navigation">
         <div className="nav-pill" ref={navRef}>
           <motion.span
@@ -133,9 +130,7 @@ export default function Nav({ theme, toggleTheme }) {
         </div>
       </nav>
 
-      {/* Mobile Navigation Bar */}
       <div className="nav nav-mobile" role="navigation" aria-label="Mobile navigation">
-        {/* Leftmost: Theme toggle button */}
         <button
           className="theme-btn"
           onClick={toggleTheme}
@@ -153,12 +148,10 @@ export default function Nav({ theme, toggleTheme }) {
           </motion.span>
         </button>
 
-        {/* Center: Current active page */}
         <div className="nav-mobile-center">
           <span className="nav-current-page">{active}</span>
         </div>
 
-        {/* Rightmost: Breadcrumb menu button */}
         <button
           className="mobile-menu-btn"
           onClick={() => setMobileMenuOpen(prev => !prev)}
@@ -179,7 +172,6 @@ export default function Nav({ theme, toggleTheme }) {
       </div>
 
 
-      {/* Mobile Dropdown Menu */}
       <AnimatePresence>
         {mobileMenuOpen && (
           <motion.div

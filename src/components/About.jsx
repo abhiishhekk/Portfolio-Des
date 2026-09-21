@@ -20,9 +20,7 @@ export default function About() {
           <span className="section-label">About</span>
         </FadeContent>
 
-        {/* Two-column: Left = heading & bio, Right = 4-cell stat grid (2 cols x 2 rows) */}
         <div className="about-grid">
-          {/* LEFT — heading, bio, location */}
           <div className="about-content">
             <FadeContent delay={0.1}>
               <BlurText
@@ -56,7 +54,6 @@ export default function About() {
             </FadeContent>
           </div>
 
-          {/* RIGHT — 4-cell stats grid (2 columns x 2 rows) */}
           <FadeContent delay={0.2} direction="up">
             <div className="about-stat-grid" style={{ marginTop: '8px' }}>
               {stats.map(s => (

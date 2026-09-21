@@ -1,7 +1,3 @@
-/**
- * SplitText — react-bits style character-by-character reveal animation
- * Uses Intersection Observer + motion/react
- */
 import { useEffect, useRef, useState } from 'react'
 import { motion, useInView } from 'motion/react'
 

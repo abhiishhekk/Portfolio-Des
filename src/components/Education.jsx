@@ -31,7 +31,6 @@ export default function Education() {
       <div className="container">
         <div className="divider" style={{ marginBottom: '100px' }} />
 
-        {/* Centered Section Header */}
         <div className="section-header-center">
           <FadeContent delay={0}>
             <span className="section-label">Education</span>

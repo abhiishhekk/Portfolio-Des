@@ -17,13 +17,11 @@
   will-change: filter, transform;
 }
 
-/* On card hover, transition smoothly to vibrant original color with react-bits spring curve */
 .project-card:hover .decay-svg,
 .decay-content:hover .decay-svg {
   filter: grayscale(0%) contrast(1) brightness(1);
 }
 
-/* Subtle cinematic vignette in B&W mode that clears on hover */
 .decay-content::after {
   content: '';
   position: absolute;

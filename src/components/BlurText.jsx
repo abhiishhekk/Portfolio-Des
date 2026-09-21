@@ -1,6 +1,3 @@
-/**
- * BlurText — react-bits style word-by-word blur-in reveal animation
- */
 import { useRef } from 'react'
 import { motion, useInView } from 'motion/react'
 

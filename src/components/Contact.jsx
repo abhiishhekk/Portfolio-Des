@@ -35,7 +35,6 @@ export default function Contact() {
       setCopied(true)
       setTimeout(() => setCopied(false), 2200)
     } catch {
-      // fallback
       const el = document.createElement('textarea')
       el.value = EMAIL
       document.body.appendChild(el)
@@ -52,7 +51,6 @@ export default function Contact() {
       <div className="container">
         <FadeContent delay={0}>
           <div className="contact-card">
-            {/* Decorative dots */}
             <div
               aria-hidden="true"
               style={{
@@ -124,7 +122,6 @@ export default function Contact() {
               </p>
             </FadeContent>
 
-            {/* Social links */}
             <FadeContent delay={0.55}>
               <div className="contact-socials">
                 {SOCIALS.map(social => (

@@ -3,7 +3,6 @@ import { useState, useEffect } from 'react'
 const USERNAME = 'abhiishhek_k'
 const CACHE_KEY = `leetcode_stats_${USERNAME}`
 
-// Default verified baseline stats for Abhishek Kumar
 const DEFAULT_STATS = {
   totalSolved: 850,
   rating: 1860,
@@ -24,7 +23,6 @@ export function useLeetCode(username = USERNAME) {
           return { ...DEFAULT_STATS, ...parsed, loading: false }
         }
       } catch {
-        // use defaults
       }
     }
     return DEFAULT_STATS
@@ -42,7 +40,6 @@ export function useLeetCode(username = USERNAME) {
         let newHard = stats.hard
         let newRanking = stats.ranking
 
-        // 1. Fetch live solved problems count via high-availability CORS-enabled LeetCode API
         try {
           const res = await fetch(`https://leetcode-api-faisalshohag.vercel.app/${username}`, {
             headers: { Accept: 'application/json' },
@@ -61,7 +58,6 @@ export function useLeetCode(username = USERNAME) {
           console.debug('LeetCode solved questions fetch note:', err)
         }
 
-        // 2. Fetch live contest rating via contest API
         try {
           const res = await fetch(`https://alfa-leetcode-api.onrender.com/${username}/contest`, {
             headers: { Accept: 'application/json' },
@@ -91,7 +87,6 @@ export function useLeetCode(username = USERNAME) {
           try {
             localStorage.setItem(CACHE_KEY, JSON.stringify(updated))
           } catch {
-            // ignore storage errors
           }
         }
       } catch (e) {

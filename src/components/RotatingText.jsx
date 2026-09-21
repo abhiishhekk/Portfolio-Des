@@ -1,6 +1,3 @@
-/**
- * RotatingText — react-bits style cycling text with spring transition
- */
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 

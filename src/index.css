@@ -1,9 +1,4 @@
-/* ===================================================
-   DESIGN TOKENS — Black & White (Reference-matched)
-   =================================================== */
-
 :root {
-  /* Light mode */
   --bg: #ffffff;
   --fg: #0a0a0a;
   --fg-muted: #6b6b6b;
@@ -38,10 +33,6 @@
   --shadow: 0 1px 4px rgba(0,0,0,0.5), 0 4px 24px rgba(0,0,0,0.4);
   --shadow-hover: 0 8px 40px rgba(0,0,0,0.7);
 }
-
-/* ===================================================
-   RESET & BASE
-   =================================================== */
 
 *, *::before, *::after {
   box-sizing: border-box;
@@ -104,10 +95,6 @@ img {
   color: var(--bg);
 }
 
-/* ===================================================
-   TYPOGRAPHY
-   =================================================== */
-
 .font-syne {
   font-family: 'Syne', sans-serif;
 }
@@ -117,10 +104,6 @@ h1, h2, h3, h4 {
   line-height: 1.1;
   letter-spacing: -0.03em;
 }
-
-/* ===================================================
-   LAYOUT
-   =================================================== */
 
 .container {
   width: 100%;
@@ -147,14 +130,9 @@ section {
   }
 }
 
-/* Hero overrides section padding via its own class */
 .hero {
   padding: 0;
 }
-
-/* ===================================================
-   SCROLLBAR
-   =================================================== */
 
 ::-webkit-scrollbar {
   width: 6px;
@@ -170,10 +148,6 @@ section {
   background: var(--fg-muted);
 }
 
-/* ===================================================
-   UTILITIES
-   =================================================== */
-
 .sr-only {
   position: absolute;
   width: 1px;
@@ -188,10 +162,6 @@ section {
   height: 1px;
   background: var(--border);
 }
-
-/* ===================================================
-   NAV
-   =================================================== */
 
 .nav-container {
   position: fixed;
@@ -387,10 +357,6 @@ section {
   border-color: var(--fg);
 }
 
-/* ===================================================
-   HERO
-   =================================================== */
-
 .hero {
   min-height: 100vh;
   display: flex;
@@ -552,10 +518,6 @@ section {
   background: var(--fg-subtle);
 }
 
-/* ===================================================
-   SECTION LABELS
-   =================================================== */
-
 .section-label {
   display: inline-flex;
   align-items: center;
@@ -593,7 +555,6 @@ section {
   margin-bottom: 56px;
 }
 
-/* Centered Section Header for Skills, Projects, Education */
 .section-header-center {
   display: flex;
   flex-direction: column;
@@ -631,10 +592,6 @@ section {
   max-width: 560px;
   margin-bottom: 0;
 }
-
-/* ===================================================
-   ABOUT
-   =================================================== */
 
 .about-grid {
   display: grid;
@@ -749,10 +706,6 @@ section {
   margin-top: 20px;
 }
 
-/* ===================================================
-   SKILLS
-   =================================================== */
-
 .skills-grid {
   display: flex;
   flex-wrap: wrap;
@@ -791,10 +744,6 @@ section {
     font-size: 0.8125rem;
   }
 }
-
-/* ===================================================
-   PROJECTS
-   =================================================== */
 
 .projects-grid {
   display: grid;
@@ -919,10 +868,6 @@ section {
   border: 1px solid var(--border);
 }
 
-/* ===================================================
-   EXPERIENCE / EDUCATION TIMELINE
-   =================================================== */
-
 .timeline {
   display: flex;
   flex-direction: column;
@@ -1030,10 +975,6 @@ section {
   color: var(--fg-subtle);
   line-height: 1.7;
 }
-
-/* ===================================================
-   CONTACT
-   =================================================== */
 
 .contact-section {
   border-top: 1px solid var(--border);
@@ -1179,10 +1120,6 @@ section {
   transition: opacity var(--transition);
 }
 
-/* ===================================================
-   FOOTER
-   =================================================== */
-
 .footer {
   padding: 40px 0;
   border-top: 1px solid var(--border);
@@ -1216,10 +1153,6 @@ section {
   color: var(--fg);
 }
 
-/* ===================================================
-   ANIMATED BACKGROUND GRID
-   =================================================== */
-
 .bg-grid {
   position: fixed;
   inset: 0;
@@ -1235,9 +1168,6 @@ section {
   transition: opacity var(--transition);
 }
 
-/* ===================================================
-   NOISE TEXTURE OVERLAY
-   =================================================== */
 .noise {
   position: fixed;
   inset: 0;
@@ -1247,12 +1177,6 @@ section {
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
   background-size: 256px 256px;
 }
-
-
-
-/* ===================================================
-   MISC ANIMATIONS
-   =================================================== */
 
 @keyframes fadeUp {
   from { opacity: 0; transform: translateY(24px); }

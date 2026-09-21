@@ -13,12 +13,9 @@ export default function App() {
 
   return (
     <>
-      {/* Background grid */}
       <div className="bg-grid" aria-hidden="true" />
-      {/* Noise texture */}
       <div className="noise" aria-hidden="true" />
 
-      {/* Skip to main */}
       <a
         href="#home"
         style={{

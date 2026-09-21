@@ -1,35 +1,21 @@
-/**
- * StackChips — Physics-driven tech chip stickers using Matter.js
- * Adapted from the react-bits / rbp-portfolio Stack component
- * (https://github.com/DavidHDev/rbp-portfolio/blob/main/components/about/stack.tsx)
- *
- * Chips fall into a container, pile up, and can be dragged around.
- * Click the ↺ button to scatter and re-drop them.
- */
 import { useEffect, useRef, useState } from 'react'
 import { RotateCcw } from 'lucide-react'
 
-// Abhishek's full tech stack extracted from resume
 const CHIPS = [
-  // Languages
   { label: 'C++',        slug: 'cplusplus',    bg: '#00599C', fg: '#ffffff' },
   { label: 'JavaScript', slug: 'javascript',   bg: '#F7DF1E', fg: '#000000' },
   { label: 'HTML5',      slug: 'html5',        bg: '#E34F26', fg: '#ffffff' },
   { label: 'CSS3',       slug: 'css3',         bg: '#1572B6', fg: '#ffffff' },
   { label: 'SQL',        slug: 'mysql',        bg: '#4479A1', fg: '#ffffff' },
-  // Frameworks & Libraries
   { label: 'React',      slug: 'react',        bg: '#20232a', fg: '#61DAFB' },
   { label: 'Node.js',    slug: 'nodedotjs',    bg: '#339933', fg: '#ffffff' },
   { label: 'Express',    slug: 'express',      bg: '#404040', fg: '#ffffff' },
   { label: 'Tailwind',   slug: 'tailwindcss',  bg: '#06B6D4', fg: '#ffffff' },
   { label: 'Redux',      slug: 'redux',        bg: '#764ABC', fg: '#ffffff' },
-  // Databases & Cloud
   { label: 'MongoDB',    slug: 'mongodb',      bg: '#47A248', fg: '#ffffff' },
   { label: 'GCP',        slug: 'googlecloud',  bg: '#4285F4', fg: '#ffffff' },
-  // ML / AI
   { label: 'TensorFlow', slug: 'tensorflow',   bg: '#FF6F00', fg: '#ffffff' },
   { label: 'LangChain',  slug: 'langchain',    bg: '#1C3C3C', fg: '#ffffff' },
-  // Tools & Platforms
   { label: 'Git',        slug: 'git',          bg: '#F05032', fg: '#ffffff' },
   { label: 'GitHub',     slug: 'github',       bg: '#181717', fg: '#ffffff' },
   { label: 'Linux',      slug: 'linux',        bg: '#FCC624', fg: '#000000' },
@@ -61,7 +47,6 @@ function ChipPill({ chip }) {
         boxShadow: '0 2px 8px rgba(0,0,0,0.25)',
       }}
     >
-      {/* Icon bubble */}
       <span
         style={{
           display: 'inline-flex',
@@ -110,7 +95,6 @@ export default function StackChips() {
 
       const { Engine, Runner, World, Bodies, Body, Mouse, MouseConstraint, Events } = Matter
 
-      // Measure actual chip dimensions
       const measureChildren = Array.from(measure.children)
       const dims = measureChildren.map(el => {
         const r = el.getBoundingClientRect()
@@ -149,7 +133,6 @@ export default function StackChips() {
       )
       World.add(world, [floor, leftWall, rightWall])
 
-      // Create physics bodies for each chip
       const states = CHIPS.map((chip, i) => {
         const dim = dims[i] ?? { w: 120, h: 36 }
         const { w, h } = dim
@@ -170,10 +153,8 @@ export default function StackChips() {
         return { chip, body, width: w, height: h }
       })
 
-      // Mouse interaction
       const mouse = Mouse.create(container)
 
-      // Remove wheel hijacking from Matter.js
       const wheelTarget = mouse.element
       if (wheelTarget.mousemove) {
         wheelTarget.removeEventListener('wheel', wheelTarget.mousewheel)
@@ -200,7 +181,6 @@ export default function StackChips() {
       const runner = Runner.create()
       Runner.run(runner, engine)
 
-      // rAF loop to sync DOM positions with physics bodies
       let raf = 0
       const tick = () => {
         for (let i = 0; i < states.length; i++) {
@@ -214,7 +194,6 @@ export default function StackChips() {
       }
       raf = requestAnimationFrame(tick)
 
-      // Resize support
       const onResize = () => {
         const newW = container.clientWidth
         const newH = container.clientHeight
@@ -245,7 +224,6 @@ export default function StackChips() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-      {/* Stack canvas */}
       <div
         style={{
           position: 'relative',
@@ -256,7 +234,6 @@ export default function StackChips() {
           background: 'var(--card-bg)',
         }}
       >
-        {/* Reset button */}
         <button
           type="button"
           onClick={() => setResetKey(k => k + 1)}
@@ -285,7 +262,6 @@ export default function StackChips() {
           <RotateCcw size={16} strokeWidth={2.2} aria-hidden="true" />
         </button>
 
-        {/* Hidden measurement layer */}
         <div
           ref={measureRef}
           aria-hidden="true"
@@ -305,7 +281,6 @@ export default function StackChips() {
           ))}
         </div>
 
-        {/* Physics canvas */}
         <div
           ref={containerRef}
           style={{

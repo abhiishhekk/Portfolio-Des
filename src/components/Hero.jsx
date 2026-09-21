@@ -24,7 +24,6 @@ export default function Hero() {
       <div className="container">
         <div className="hero-inner">
 
-          {/* Name — react-bits WarpText WebGL kinetic liquid distortion in two lines */}
           <h1 className="hero-title" aria-label="Abhishek Kumar.">
             <span className="sr-only">Abhishek Kumar.</span>
             <WarpText
@@ -44,7 +43,6 @@ export default function Hero() {
             />
           </h1>
 
-          {/* Rotating role text */}
           <motion.div
             className="hero-role-wrapper"
             style={{
@@ -63,7 +61,6 @@ export default function Hero() {
             <RotatingText texts={ROLES} interval={2600} />
           </motion.div>
 
-          {/* Description */}
           <motion.p
             className="hero-subtitle"
             initial={{ opacity: 0, y: 20 }}
@@ -76,7 +73,6 @@ export default function Hero() {
             algorithmic challenges.
           </motion.p>
 
-          {/* CTAs */}
           <motion.div
             className="hero-ctas"
             initial={{ opacity: 0, y: 20 }}
@@ -111,7 +107,6 @@ export default function Hero() {
             </a>
           </motion.div>
 
-          {/* Scroll hint */}
           <motion.div
             className="hero-scroll-hint"
             initial={{ opacity: 0 }}

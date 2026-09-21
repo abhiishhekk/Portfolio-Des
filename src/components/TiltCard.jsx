@@ -1,6 +1,3 @@
-/**
- * TiltCard — react-bits style perspective tilt on hover
- */
 import { useRef } from 'react'
 import { motion, useMotionValue, useTransform, useSpring } from 'motion/react'
 

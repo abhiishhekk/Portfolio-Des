@@ -23,7 +23,6 @@ export default function Skills() {
       <div className="container">
         <div className="divider" style={{ marginBottom: '100px' }} />
 
-        {/* Centered Section Header */}
         <div className="section-header-center">
           <FadeContent delay={0}>
             <span className="section-label">Skills</span>
@@ -48,7 +47,6 @@ export default function Skills() {
           </FadeContent>
         </div>
 
-        {/* Skill tag chips */}
         <div className="skills-grid">
           {SKILLS.map((skill, i) => (
             <FadeContent key={skill} delay={0.08 + i * 0.03}>
@@ -59,7 +57,6 @@ export default function Skills() {
           ))}
         </div>
 
-        {/* Physics Stack — below the skill tags */}
         <FadeContent delay={0.3}>
           <div style={{ marginTop: '60px' }}>
             <h3
