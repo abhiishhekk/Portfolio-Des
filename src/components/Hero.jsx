@@ -7,7 +7,6 @@ import { useLeetCode } from '../hooks/useLeetCode'
 const ROLES = [
   'Full-Stack Developer',
   'Competitive Programmer',
-  'React Developer',
   'Problem Solver',
   'CS @ MNNIT Allahabad',
 ]
@@ -47,11 +46,12 @@ export default function Hero() {
             className="hero-role-wrapper"
             style={{
               display: 'flex',
-              alignItems: 'center',
+
               gap: '8px',
               flexWrap: 'wrap',
               fontSize: '1.125rem',
               color: 'var(--fg-muted)',
+              justifyContent:'center'
             }}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
