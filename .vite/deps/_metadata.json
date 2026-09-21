@@ -1,0 +1,58 @@
+{
+  "hash": "df52bcdc",
+  "configHash": "903a590c",
+  "lockfileHash": "38038cc2",
+  "browserHash": "6f607b09",
+  "optimized": {
+    "react": {
+      "src": "../../../Porfolio Astra/node_modules/react/index.js",
+      "file": "react.js",
+      "fileHash": "d9d0e5b1",
+      "needsInterop": true
+    },
+    "react-dom/client": {
+      "src": "../../../Porfolio Astra/node_modules/react-dom/client.js",
+      "file": "react-dom_client.js",
+      "fileHash": "6e40459e",
+      "needsInterop": true
+    },
+    "motion/react": {
+      "src": "../../../Porfolio Astra/node_modules/motion/dist/es/motion/lib/react.mjs",
+      "file": "motion_react.js",
+      "fileHash": "a971718a",
+      "needsInterop": false
+    },
+    "lucide-react": {
+      "src": "../../../Porfolio Astra/node_modules/lucide-react/dist/esm/lucide-react.js",
+      "file": "lucide-react.js",
+      "fileHash": "0fdd741b",
+      "needsInterop": false
+    },
+    "matter-js": {
+      "src": "../../../Porfolio Astra/node_modules/matter-js/build/matter.js",
+      "file": "matter-js.js",
+      "fileHash": "be2c7997",
+      "needsInterop": true
+    },
+    "ogl": {
+      "src": "../../../Porfolio Astra/node_modules/ogl/src/index.js",
+      "file": "ogl.js",
+      "fileHash": "1ec80b6a",
+      "needsInterop": false
+    },
+    "gsap": {
+      "src": "../../../Porfolio Astra/node_modules/gsap/index.js",
+      "file": "gsap.js",
+      "fileHash": "a91e792b",
+      "needsInterop": false
+    }
+  },
+  "chunks": {
+    "chunk-5N62QSFD": {
+      "file": "chunk-5N62QSFD.js"
+    },
+    "chunk-G3PMV62Z": {
+      "file": "chunk-G3PMV62Z.js"
+    }
+  }
+}
