@@ -46,18 +46,19 @@ export default function Hero() {
             className="hero-role-wrapper"
             style={{
               display: 'flex',
-
+              alignItems: 'center',
+              justifyContent: 'center',
               gap: '8px',
               flexWrap: 'wrap',
               fontSize: '1.125rem',
               color: 'var(--fg-muted)',
-              justifyContent:'center'
+              minHeight: '2rem',
             }}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.5 }}
           >
-            <span>I&apos;m a</span>
+            <span style={{ whiteSpace: 'nowrap' }}>I&apos;m a</span>
             <RotatingText texts={ROLES} interval={2600} />
           </motion.div>
 
