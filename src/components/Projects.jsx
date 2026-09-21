@@ -81,7 +81,7 @@ export default function Projects() {
 
           <FadeContent delay={0.1}>
             <BlurText
-              text="Things I've Built"
+              text="Projects I've Worked On"
               tag="h2"
               className="section-title"
               style={{ justifyContent: 'center' }}

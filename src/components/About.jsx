@@ -16,7 +16,7 @@ export default function About() {
   return (
     <section id="about" aria-label="About section">
       <div className="container">
-        <FadeContent delay={0}>
+        <FadeContent delay={0} className="about-label-wrap">
           <span className="section-label">About</span>
         </FadeContent>
 
