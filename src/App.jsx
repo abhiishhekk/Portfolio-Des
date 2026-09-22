@@ -1,4 +1,5 @@
 import { useTheme } from './hooks/useTheme'
+import { useSmoothScroll } from './hooks/useSmoothScroll'
 import Nav from './components/Nav'
 import Hero from './components/Hero'
 import About from './components/About'
@@ -10,6 +11,7 @@ import Footer from './components/Footer'
 
 export default function App() {
   const { theme, toggle } = useTheme()
+  useSmoothScroll()
 
   return (
     <>

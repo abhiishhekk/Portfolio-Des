@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Mesh, Program, Renderer, Triangle } from 'ogl';
 import './GlowCursor.css';
 
@@ -144,6 +144,7 @@ const GlowCursor = ({
   blendMode = 'screen',
   maxDevicePixelRatio = 1.5,
   enabled = true,
+  desktopOnly = true,
   children,
   className = '',
   style,
@@ -152,6 +153,40 @@ const GlowCursor = ({
   const containerRef = useRef(null);
   const canvasRef = useRef(null);
   const propsRef = useRef({});
+  const [isDesktop, setIsDesktop] = useState(false);
+
+  useEffect(() => {
+    if (!desktopOnly) {
+      setIsDesktop(true);
+      return;
+    }
+
+    const checkDevice = () => {
+      // Must have fine pointer (mouse / precision trackpad) and hover capability,
+      // and a screen width >= 768px (to avoid phone browsers and small touch screens)
+      const hasFinePointer =
+        typeof window !== 'undefined' &&
+        window.matchMedia &&
+        window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+      const isWideScreen = typeof window !== 'undefined' && window.innerWidth >= 768;
+      const isTouchOnly = typeof window !== 'undefined' && 'ontouchstart' in window && !hasFinePointer;
+
+      setIsDesktop(Boolean(hasFinePointer && isWideScreen && !isTouchOnly));
+    };
+
+    checkDevice();
+
+    const mediaQuery = window.matchMedia('(hover: hover) and (pointer: fine)');
+    mediaQuery.addEventListener?.('change', checkDevice);
+    window.addEventListener('resize', checkDevice);
+
+    return () => {
+      mediaQuery.removeEventListener?.('change', checkDevice);
+      window.removeEventListener('resize', checkDevice);
+    };
+  }, [desktopOnly]);
+
+  const isGlowActive = enabled && (!desktopOnly || isDesktop);
 
   propsRef.current = {
     color,
@@ -172,10 +207,12 @@ const GlowCursor = ({
     fadeDuration,
     maxDevicePixelRatio,
     blendMode,
-    enabled
+    enabled: isGlowActive
   };
 
   useEffect(() => {
+    if (!isGlowActive) return;
+
     const container = containerRef.current;
     const canvas = canvasRef.current;
     if (!container || !canvas) return;
@@ -338,11 +375,13 @@ const GlowCursor = ({
       mesh.geometry.remove();
       program.remove();
     };
-  }, [maxDevicePixelRatio]);
+  }, [isGlowActive, maxDevicePixelRatio]);
 
   return (
     <div ref={containerRef} className={`glow-cursor${className ? ` ${className}` : ''}`} style={style} {...rest}>
-      <canvas ref={canvasRef} className="glow-cursor__canvas" style={{ mixBlendMode: blendMode }} aria-hidden="true" />
+      {isGlowActive && (
+        <canvas ref={canvasRef} className="glow-cursor__canvas" style={{ mixBlendMode: blendMode }} aria-hidden="true" />
+      )}
       {children && <div className="glow-cursor__content">{children}</div>}
     </div>
   );

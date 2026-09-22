@@ -81,8 +81,12 @@ export default function Nav({ theme, toggleTheme }) {
     e.preventDefault()
     setActive(item.label)
     setMobileMenuOpen(false)
-    const target = document.querySelector(item.href)
-    if (target) target.scrollIntoView({ behavior: 'smooth' })
+    if (window.__lenis) {
+      window.__lenis.scrollTo(item.href, { duration: 1.4 })
+    } else {
+      const target = document.querySelector(item.href)
+      if (target) target.scrollIntoView({ behavior: 'smooth' })
+    }
   }
 
   return (

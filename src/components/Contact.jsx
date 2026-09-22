@@ -99,6 +99,7 @@ export default function Contact() {
         <FadeContent delay={0}>
           <GlowCursor
             className="contact-card"
+            desktopOnly
             color={glowConfig.color}
             secondaryColor={glowConfig.secondaryColor}
             trailLength={40}

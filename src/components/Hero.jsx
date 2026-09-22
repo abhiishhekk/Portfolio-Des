@@ -15,7 +15,11 @@ export default function Hero() {
   const leetCode = useLeetCode('abhiishhek_k')
 
   function scrollTo(id) {
-    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })
+    if (window.__lenis) {
+      window.__lenis.scrollTo(`#${id}`, { duration: 1.4 })
+    } else {
+      document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })
+    }
   }
 
   return (
