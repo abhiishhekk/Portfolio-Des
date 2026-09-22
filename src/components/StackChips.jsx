@@ -179,10 +179,37 @@ export default function StackChips() {
       })
 
       const runner = Runner.create()
-      Runner.run(runner, engine)
-
+      let isRunning = false
       let raf = 0
+      let isIntersecting = false
+
+      const startPhysics = () => {
+        if (!isRunning) {
+          Runner.run(runner, engine)
+          isRunning = true
+        }
+        if (!raf) {
+          raf = requestAnimationFrame(tick)
+        }
+      }
+
+      const stopPhysics = () => {
+        if (isRunning) {
+          Runner.stop(runner)
+          isRunning = false
+        }
+        if (raf) {
+          cancelAnimationFrame(raf)
+          raf = 0
+        }
+      }
+
       const tick = () => {
+        if (!isIntersecting) {
+          stopPhysics()
+          return
+        }
+
         for (let i = 0; i < states.length; i++) {
           const s = states[i]
           const el = chipRefs.current[i]
@@ -192,7 +219,16 @@ export default function StackChips() {
         }
         raf = requestAnimationFrame(tick)
       }
-      raf = requestAnimationFrame(tick)
+
+      const observer = new IntersectionObserver(([entry]) => {
+        isIntersecting = entry.isIntersecting
+        if (isIntersecting) {
+          startPhysics()
+        } else {
+          stopPhysics()
+        }
+      }, { threshold: 0.05 })
+      observer.observe(container)
 
       const onResize = () => {
         const newW = container.clientWidth
@@ -208,9 +244,9 @@ export default function StackChips() {
       ro.observe(container)
 
       cleanup = () => {
-        cancelAnimationFrame(raf)
+        stopPhysics()
+        observer.disconnect()
         ro.disconnect()
-        Runner.stop(runner)
         World.clear(world, false)
         Engine.clear(engine)
       }

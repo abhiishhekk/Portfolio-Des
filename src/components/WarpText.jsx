@@ -355,7 +355,7 @@ export default function WarpText({
         alpha: true,
         premultipliedAlpha: false,
         antialias: true,
-        dpr: Math.min(window.devicePixelRatio || 1, 2),
+        dpr: Math.min(window.devicePixelRatio || 1, 1.5),
       })
       gl = renderer.gl
     } catch (error) {
@@ -411,13 +411,16 @@ export default function WarpText({
       renderer.render({ scene: mesh })
     }
 
+    let lastWidth = 0
+    let lastHeight = 0
+
     const rasterize = () => {
       if (disposed || contextLost) return
 
       const rect = container.getBoundingClientRect()
       if (rect.width <= 0 || rect.height <= 0) return
 
-      const dpr = Math.min(window.devicePixelRatio || 1, 2)
+      const dpr = Math.min(window.devicePixelRatio || 1, 1.5)
       const textCanvas = buildTextCanvas({
         container,
         width: rect.width,
@@ -435,7 +438,13 @@ export default function WarpText({
       const rect = container.getBoundingClientRect()
       if (rect.width <= 0 || rect.height <= 0) return
 
-      renderer.dpr = Math.min(window.devicePixelRatio || 1, 2)
+      const w = Math.round(rect.width)
+      const h = Math.round(rect.height)
+      if (w === lastWidth && h === lastHeight) return
+      lastWidth = w
+      lastHeight = h
+
+      renderer.dpr = Math.min(window.devicePixelRatio || 1, 1.5)
       renderer.setSize(rect.width, rect.height)
       program.uniforms.uResolution.value[0] = gl.drawingBufferWidth
       program.uniforms.uResolution.value[1] = gl.drawingBufferHeight
@@ -444,10 +453,11 @@ export default function WarpText({
 
     const onPointerMove = event => {
       if (event.pointerType === 'touch') return
-      const rect = canvas.getBoundingClientRect()
-      if (rect.width <= 0 || rect.height <= 0) return
-      pointer.tx = (event.clientX - rect.left) / rect.width
-      pointer.ty = 1 - (event.clientY - rect.top) / rect.height
+      const w = lastWidth || canvas.clientWidth
+      const h = lastHeight || canvas.clientHeight
+      if (w <= 0 || h <= 0) return
+      pointer.tx = Math.max(0, Math.min(1, event.offsetX / w))
+      pointer.ty = Math.max(0, Math.min(1, 1 - event.offsetY / h))
       pointer.activeTarget = 1
     }
 
@@ -479,7 +489,7 @@ export default function WarpText({
     }
 
     const loop = now => {
-      if (disposed || contextLost) return
+      if (disposed || contextLost || !visible) return
 
       const elapsed = (now - startTime) * 0.001
       const idleX = 0.5 + Math.sin(elapsed * 0.33) * 0.12
@@ -517,12 +527,17 @@ export default function WarpText({
     )
     intersectionObserver.observe(container)
 
+    let lastTheme = document.documentElement.getAttribute('data-theme')
     themeObserver = new MutationObserver(() => {
-      rasterize()
+      const currentTheme = document.documentElement.getAttribute('data-theme')
+      if (currentTheme !== lastTheme) {
+        lastTheme = currentTheme
+        rasterize()
+      }
     })
     themeObserver.observe(document.documentElement, {
       attributes: true,
-      attributeFilter: ['data-theme', 'class'],
+      attributeFilter: ['data-theme'],
     })
 
     canvas.addEventListener('pointermove', onPointerMove)

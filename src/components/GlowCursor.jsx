@@ -354,23 +354,57 @@ const GlowCursor = ({
       program.uniforms.uFade.value = fade;
 
       renderer.render({ scene: mesh });
-      if (!destroyed) raf = requestAnimationFrame(render);
+
+      // Stop loop when completely faded out and pointer is not inside, or when offscreen
+      if (!destroyed && isIntersecting) {
+        if (!pointerInside && fade < 0.002) {
+          raf = 0;
+          return;
+        }
+        raf = requestAnimationFrame(render);
+      } else {
+        raf = 0;
+      }
+    };
+
+    let isIntersecting = false;
+    const startRender = () => {
+      if (!raf && !destroyed && isIntersecting) {
+        lastFrameTime = performance.now();
+        raf = requestAnimationFrame(render);
+      }
+    };
+
+    const intersectionObserver = new IntersectionObserver(([entry]) => {
+      isIntersecting = entry.isIntersecting;
+      if (isIntersecting) {
+        startRender();
+      } else if (raf) {
+        cancelAnimationFrame(raf);
+        raf = 0;
+      }
+    }, { threshold: 0.05 });
+    intersectionObserver.observe(container);
+
+    const onPointerEnterWithRender = event => {
+      updatePointer(event);
+      startRender();
     };
 
     const resizeObserver = new ResizeObserver(resize);
     resizeObserver.observe(container);
     container.addEventListener('pointermove', updatePointer);
-    container.addEventListener('pointerenter', updatePointer);
+    container.addEventListener('pointerenter', onPointerEnterWithRender);
     container.addEventListener('pointerleave', onPointerLeave);
     resize();
-    raf = requestAnimationFrame(render);
 
     return () => {
       destroyed = true;
-      cancelAnimationFrame(raf);
+      if (raf) cancelAnimationFrame(raf);
+      intersectionObserver.disconnect();
       resizeObserver.disconnect();
       container.removeEventListener('pointermove', updatePointer);
-      container.removeEventListener('pointerenter', updatePointer);
+      container.removeEventListener('pointerenter', onPointerEnterWithRender);
       container.removeEventListener('pointerleave', onPointerLeave);
       mesh.geometry.remove();
       program.remove();

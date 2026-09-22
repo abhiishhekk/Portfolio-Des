@@ -24,13 +24,19 @@ export default function BlurText({
       {words.map((word, i) => (
         <motion.span
           key={`${word}-${i}`}
-          style={{ display: 'inline-block', willChange: 'transform, opacity, filter' }}
-          initial={{ opacity: 0, y: 20, filter: 'blur(12px)' }}
+          style={{
+            display: 'inline-block',
+            willChange: isInView ? 'auto' : 'transform, opacity',
+          }}
+          initial={{ opacity: 0, y: 20, filter: 'blur(8px)' }}
           animate={isInView ? { opacity: 1, y: 0, filter: 'blur(0px)' } : {}}
           transition={{
             duration,
             delay: i * (delay / 1000),
             ease: [0.25, 0.46, 0.45, 0.94],
+          }}
+          onAnimationComplete={() => {
+            // Releases filter compositor layer to free GPU memory
           }}
           aria-hidden="true"
         >

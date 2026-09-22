@@ -39,28 +39,45 @@ export default function DecayCard({
 
     let rafId = 0
     let isHovering = false
+    let isIntersecting = false
+    let containerWidth = 400
+    let containerHeight = 225
+
+    const updateDimensions = () => {
+      const rect = container.getBoundingClientRect()
+      containerWidth = rect.width || 400
+      containerHeight = rect.height || 225
+    }
+
+    const startRender = () => {
+      if (!rafId && isIntersecting) {
+        rafId = requestAnimationFrame(render)
+      }
+    }
 
     const handleMouseMove = ev => {
-      const rect = container.getBoundingClientRect()
-      cursor.current.x = ev.clientX - rect.left
-      cursor.current.y = ev.clientY - rect.top
+      cursor.current.x = ev.offsetX
+      cursor.current.y = ev.offsetY
       cursor.current.active = true
       isHovering = true
+      startRender()
     }
 
     const handleMouseEnter = ev => {
-      const rect = container.getBoundingClientRect()
-      cursor.current.x = ev.clientX - rect.left
-      cursor.current.y = ev.clientY - rect.top
+      updateDimensions()
+      cursor.current.x = ev.offsetX
+      cursor.current.y = ev.offsetY
       cachedCursor.current.x = cursor.current.x
       cachedCursor.current.y = cursor.current.y
       cursor.current.active = true
       isHovering = true
+      startRender()
     }
 
     const handleMouseLeave = () => {
       cursor.current.active = false
       isHovering = false
+      startRender()
     }
 
     container.addEventListener('mousemove', handleMouseMove)
@@ -68,9 +85,13 @@ export default function DecayCard({
     container.addEventListener('mouseleave', handleMouseLeave)
 
     const render = () => {
-      const rect = container.getBoundingClientRect()
-      const w = rect.width || 400
-      const h = rect.height || 225
+      if (!isIntersecting) {
+        rafId = 0
+        return
+      }
+
+      const w = containerWidth
+      const h = containerHeight
 
       let targetX = 0
       let targetY = 0
@@ -123,13 +144,42 @@ export default function DecayCard({
       cachedCursor.current.x = cursor.current.x
       cachedCursor.current.y = cursor.current.y
 
+      // Check if settled to stop running RAF loop unnecessarily
+      const isSettled =
+        !isHovering &&
+        Math.abs(imgValues.x) < 0.05 &&
+        Math.abs(imgValues.y) < 0.05 &&
+        Math.abs(imgValues.rz) < 0.05 &&
+        imgValues.displacementScale < 0.05
+
+      if (isSettled) {
+        imgValues.x = 0
+        imgValues.y = 0
+        imgValues.rz = 0
+        imgValues.displacementScale = 0
+        if (gRef.current) gsap.set(gRef.current, { x: 0, y: 0, rotateZ: 0 })
+        if (displacementMapRef.current) displacementMapRef.current.setAttribute('scale', '0')
+        rafId = 0
+        return
+      }
+
       rafId = requestAnimationFrame(render)
     }
 
-    rafId = requestAnimationFrame(render)
+    const observer = new IntersectionObserver(([entry]) => {
+      isIntersecting = entry.isIntersecting
+      if (isIntersecting && isHovering) {
+        startRender()
+      } else if (!isIntersecting && rafId) {
+        cancelAnimationFrame(rafId)
+        rafId = 0
+      }
+    })
+    observer.observe(container)
 
     return () => {
-      cancelAnimationFrame(rafId)
+      if (rafId) cancelAnimationFrame(rafId)
+      observer.disconnect()
       container.removeEventListener('mousemove', handleMouseMove)
       container.removeEventListener('mouseenter', handleMouseEnter)
       container.removeEventListener('mouseleave', handleMouseLeave)
