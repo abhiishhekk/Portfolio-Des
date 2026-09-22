@@ -29,7 +29,7 @@ export default function Hero() {
               text={"Abhishek\nKumar."}
               fontFamily="Syne, sans-serif"
               fontWeight={800}
-              fontSize="clamp(2.4rem, 7.5vw, 6.25rem)"
+              fontSize="clamp(2.75rem, 12vw, 6.25rem)"
               letterSpacing="-0.04em"
               lineHeight={0.94}
               warpStrength={0.09}

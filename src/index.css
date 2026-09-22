@@ -411,14 +411,18 @@ section {
 }
 
 .hero {
+  height: 100vh;
+  height: 100dvh;
   min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   align-items: center;
   justify-content: center;
   position: relative;
-  padding-top: 140px;
-  padding-bottom: 70px;
+  padding-top: 100px;
+  padding-bottom: 40px;
   width: 100%;
+  box-sizing: border-box;
 }
 
 .hero-inner {
@@ -529,18 +533,40 @@ section {
 
 @media (max-width: 768px) {
   .hero {
-    padding-top: 85px;
-    padding-bottom: 32px;
-    min-height: 80vh;
+    height: 100vh;
+    height: 100dvh;
+    min-height: 100vh;
+    min-height: 100dvh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    box-sizing: border-box;
+    overflow: hidden;
+    position: relative;
+    width: 100%;
+  }
+
+  .hero .container {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
   .hero-inner {
-    gap: 18px;
+    gap: 12px;
+    margin: auto 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
   }
 
   .hero-title {
-    font-size: clamp(2.1rem, 10.5vw, 3.4rem);
-    line-height: 1.02;
+    font-size: clamp(2.75rem, 12vw, 3.8rem);
+    line-height: 1;
   }
 
   .hero-title-word {
@@ -550,13 +576,11 @@ section {
 
   .hero-subtitle {
     font-size: 0.9375rem;
-    line-height: 1.65;
+    line-height: 1.6;
   }
-}
 
-@media (max-width: 380px) {
-  .hero-title {
-    font-size: clamp(1.8rem, 10vw, 2.25rem);
+  .hero-scroll-hint {
+    margin-top: 4px;
   }
 }
 
@@ -1302,6 +1326,33 @@ section {
 
 .footer-link:hover {
   color: var(--fg);
+}
+
+@media (max-width: 768px) {
+  .footer {
+    padding: 32px 0;
+  }
+
+  .footer-inner {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: 14px;
+  }
+
+  .footer-copy {
+    text-align: center;
+    width: 100%;
+  }
+
+  .footer-links {
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 14px 20px;
+    width: 100%;
+  }
 }
 
 .bg-grid {

@@ -22,7 +22,7 @@
 
 @media (max-width: 540px) {
   .warp-text {
-    height: clamp(140px, 32vw, 175px);
-    min-height: 140px;
+    height: clamp(155px, 42vw, 200px);
+    min-height: 150px;
   }
 }

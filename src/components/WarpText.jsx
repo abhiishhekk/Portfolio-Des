@@ -185,8 +185,8 @@ const buildTextCanvas = ({ container, width, height, dpr, props }) => {
   }
   applyFont()
 
-  const maxWidth = width * 0.88
-  const maxHeight = height * 0.82
+  const maxWidth = width * 0.98
+  const maxHeight = height * 0.92
   const widest = Math.max(...lines.map(line => measureLine(ctx, line, letterSpacing)), 1)
   const blockHeight = Math.max(lineHeight * lines.length, 1)
   const fit = Math.min(1, maxWidth / widest, maxHeight / blockHeight)
@@ -504,7 +504,10 @@ export default function WarpText({
     resize()
     if (document.fonts?.ready) {
       document.fonts.ready.then(() => {
-        if (!disposed && !contextLost) rasterize()
+        if (!disposed && !contextLost) {
+          resize()
+          rasterize()
+        }
       })
     }
     raf = requestAnimationFrame(loop)
