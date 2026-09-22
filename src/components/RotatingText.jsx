@@ -73,7 +73,8 @@ export default function RotatingText({
           display: 'inline-flex',
           overflow: 'hidden',
           position: 'relative',
-          height: '1.3em',
+          height: '1.35em',
+          lineHeight: '1.35em',
           verticalAlign: 'middle',
           alignItems: 'center',
           willChange: 'width',
@@ -97,6 +98,7 @@ export default function RotatingText({
               whiteSpace: 'nowrap',
               color: 'var(--fg)',
               fontWeight: 600,
+              lineHeight: 'inherit',
             }}
             initial={{ y: '110%', opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}

@@ -10,7 +10,7 @@ export default function About() {
     { num: `${leetCode.totalSolved}+`, label: 'DSA Problems Solved' },
     { num: `${leetCode.rating}`, label: 'LeetCode Rating' },
     { num: '6+', label: 'Projects Built' },
-    { num: '7.56', label: 'CGPA at MNNIT' },
+    { num: '7.56', label: 'CGPA at NIT Allahabad' },
   ]
 
   return (
@@ -54,7 +54,7 @@ export default function About() {
             </FadeContent>
           </div>
 
-          <FadeContent delay={0.2} direction="up">
+          <FadeContent delay={0.2} direction="up" className="about-stat-wrap">
             <div className="about-stat-grid" style={{ marginTop: '8px' }}>
               {stats.map(s => (
                 <div className="about-stat" key={s.label}>

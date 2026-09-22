@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Renderer, Program, Mesh, Triangle, Texture } from 'ogl'
 import './WarpText.css'
 
@@ -151,7 +151,8 @@ const buildTextCanvas = ({ container, width, height, dpr, props }) => {
     letterSpacing: getFontValue(props.letterSpacing),
     lineHeight: typeof props.lineHeight === 'number' ? String(props.lineHeight) : props.lineHeight,
   })
-  container.appendChild(probe)
+  const mountTarget = document.body || container
+  mountTarget.appendChild(probe)
   const computed = window.getComputedStyle(probe)
   let fontSizePx = parseFloat(computed.fontSize) || 84
   const fontFamily = computed.fontFamily || 'Syne, sans-serif'
@@ -236,6 +237,36 @@ export default function WarpText({
   style,
 }) {
   const containerRef = useRef(null)
+  const [isMobile, setIsMobile] = useState(() => {
+    if (typeof window === 'undefined') return false
+    const hasFinePointer =
+      window.matchMedia && window.matchMedia('(hover: hover) and (pointer: fine)').matches
+    const isTouchOnly = 'ontouchstart' in window && !hasFinePointer
+    const isSmallScreen = window.innerWidth <= 768
+    return Boolean(isSmallScreen || isTouchOnly || !hasFinePointer)
+  })
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const checkMobile = () => {
+      const hasFinePointer =
+        window.matchMedia && window.matchMedia('(hover: hover) and (pointer: fine)').matches
+      const isTouchOnly = 'ontouchstart' in window && !hasFinePointer
+      const isSmallScreen = window.innerWidth <= 768
+      setIsMobile(Boolean(isSmallScreen || isTouchOnly || !hasFinePointer))
+    }
+
+    checkMobile()
+    const mq = window.matchMedia('(hover: hover) and (pointer: fine)')
+    mq.addEventListener?.('change', checkMobile)
+    window.addEventListener('resize', checkMobile)
+
+    return () => {
+      mq.removeEventListener?.('change', checkMobile)
+      window.removeEventListener('resize', checkMobile)
+    }
+  }, [])
+
   const propsRef = useRef({
     text,
     color,
@@ -294,6 +325,7 @@ export default function WarpText({
   ])
 
   useEffect(() => {
+    if (isMobile) return undefined
     const container = containerRef.current
     if (!container || typeof window === 'undefined') return undefined
 
@@ -536,7 +568,11 @@ export default function WarpText({
 
       if (canvas.parentNode === container) container.removeChild(canvas)
     }
-  }, [])
+  }, [isMobile])
+
+  if (isMobile) {
+    return null
+  }
 
   return (
     <div

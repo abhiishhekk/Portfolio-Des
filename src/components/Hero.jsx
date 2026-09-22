@@ -8,7 +8,7 @@ const ROLES = [
   'Full-Stack Developer',
   'Competitive Programmer',
   'Problem Solver',
-  'CS @ MNNIT Allahabad',
+  'CS @ NIT Allahabad',
 ]
 
 export default function Hero() {
@@ -29,21 +29,27 @@ export default function Hero() {
 
           <h1 className="hero-title" aria-label="Abhishek Kumar.">
             <span className="sr-only">Abhishek Kumar.</span>
-            <WarpText
-              text={"Abhishek\nKumar."}
-              fontFamily="Syne, sans-serif"
-              fontWeight={800}
-              fontSize="clamp(2.75rem, 12vw, 6.25rem)"
-              letterSpacing="-0.04em"
-              lineHeight={0.94}
-              warpStrength={0.09}
-              warpScale={1.6}
-              speed={0.55}
-              pointerInfluence={0.45}
-              pointerStrength={0.4}
-              refraction={0.02}
-              ripple={true}
-            />
+            <div className="hero-title-warp">
+              <WarpText
+                text={"Abhishek\nKumar."}
+                fontFamily="Syne, sans-serif"
+                fontWeight={800}
+                fontSize="clamp(2.75rem, 12vw, 6.25rem)"
+                letterSpacing="-0.04em"
+                lineHeight={0.94}
+                warpStrength={0.09}
+                warpScale={1.6}
+                speed={0.55}
+                pointerInfluence={0.45}
+                pointerStrength={0.4}
+                refraction={0.02}
+                ripple={true}
+              />
+            </div>
+            <div className="hero-title-static" aria-hidden="true">
+              <span className="hero-title-word">Abhishek</span>
+              <span className="hero-title-word">Kumar.</span>
+            </div>
           </h1>
 
           <motion.div
@@ -53,10 +59,12 @@ export default function Hero() {
               alignItems: 'center',
               justifyContent: 'center',
               gap: '8px',
-              flexWrap: 'wrap',
+              flexWrap: 'nowrap',
+              whiteSpace: 'nowrap',
               fontSize: '1.125rem',
               color: 'var(--fg-muted)',
               minHeight: '2rem',
+              height: '2rem',
             }}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -73,7 +81,7 @@ export default function Hero() {
             transition={{ duration: 0.5, delay: 0.65 }}
           >
             CS undergrad at{' '}
-            <strong style={{ color: 'var(--fg)', fontWeight: 600 }}>MNNIT Allahabad</strong> — solved{' '}
+            <strong style={{ color: 'var(--fg)', fontWeight: 600 }}>NIT Allahabad</strong> — solved{' '}
             {leetCode.totalSolved}+ problems on LeetCode, building scalable full-stack apps and competing in
             algorithmic challenges.
           </motion.p>
