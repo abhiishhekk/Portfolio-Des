@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'motion/react'
 import { Copy, Check, Github, Linkedin, Code2 } from 'lucide-react'
 import FadeContent from './FadeContent'
+import GlowCursor from './GlowCursor'
 
 const EMAIL = 'abhishekkr.init@gmail.com'
 
@@ -28,6 +29,52 @@ const SOCIALS = [
 
 export default function Contact() {
   const [copied, setCopied] = useState(false)
+  const [theme, setTheme] = useState(() => {
+    if (typeof document !== 'undefined') {
+      return document.documentElement.getAttribute('data-theme') || 'dark'
+    }
+    return 'dark'
+  })
+
+  useEffect(() => {
+    const checkTheme = () => {
+      const current = document.documentElement.getAttribute('data-theme') || 'dark'
+      setTheme(current)
+    }
+    checkTheme()
+
+    const observer = new MutationObserver(checkTheme)
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['data-theme'],
+    })
+
+    return () => observer.disconnect()
+  }, [])
+
+  const isDark = theme !== 'light'
+
+  const glowConfig = isDark
+    ? {
+        color: '#67E8F9',
+        secondaryColor: '#A78BFA',
+        blendMode: 'screen',
+        glowIntensity: 1.9,
+        glowSpread: 1.2,
+        hotspot: 0.65,
+        brightness: 1.25,
+        opacity: 1,
+      }
+    : {
+        color: '#0284C7',
+        secondaryColor: '#7C3AED',
+        blendMode: 'normal',
+        glowIntensity: 1.4,
+        glowSpread: 1.0,
+        hotspot: 0.35,
+        brightness: 1.0,
+        opacity: 0.8,
+      }
 
   async function handleCopy() {
     try {
@@ -50,7 +97,26 @@ export default function Contact() {
     <section id="contact" className="contact-section" aria-label="Contact section">
       <div className="container">
         <FadeContent delay={0}>
-          <div className="contact-card">
+          <GlowCursor
+            className="contact-card"
+            color={glowConfig.color}
+            secondaryColor={glowConfig.secondaryColor}
+            trailLength={40}
+            trailWidth={8}
+            trailTaper={0.8}
+            followSpeed={0.16}
+            glowIntensity={glowConfig.glowIntensity}
+            glowSpread={glowConfig.glowSpread}
+            hotspot={glowConfig.hotspot}
+            brightness={glowConfig.brightness}
+            opacity={glowConfig.opacity}
+            pulseSpeed={1.1}
+            noiseStrength={0.035}
+            idleFade
+            idleTimeout={700}
+            fadeDuration={900}
+            blendMode={glowConfig.blendMode}
+          >
             <div
               aria-hidden="true"
               style={{
@@ -76,9 +142,7 @@ export default function Contact() {
             </div>
 
             <FadeContent delay={0.1}>
-              <span className="section-label" style={{ justifyContent: 'center' }}>
-                Contact
-              </span>
+              <span className="section-label">Contact</span>
             </FadeContent>
 
             <FadeContent delay={0.2}>
@@ -142,7 +206,7 @@ export default function Contact() {
                 ))}
               </div>
             </FadeContent>
-          </div>
+          </GlowCursor>
         </FadeContent>
       </div>
     </section>
