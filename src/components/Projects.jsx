@@ -4,12 +4,12 @@ import TiltCard from './TiltCard'
 import BlurText from './BlurText'
 import DecayCard from './DecayCard'
 
-import urbanResolveImg from '../assets/UrbanResolve.png'
-import teamSyncImg from '../assets/TeamSync.png'
-import plantDiseaseImg from '../assets/PlantDiseaseDetection.png'
-import codePulseImg from '../assets/CodePulse.png'
-import procTraceImg from '../assets/ProcTrace.png'
-import truckDriverImg from '../assets/TruckDriver.png'
+import urbanResolveImg from '../assets/UrbanResolve.webp'
+import teamSyncImg from '../assets/TeamSync.webp'
+import plantDiseaseImg from '../assets/PlantDiseaseDetection.webp'
+import codePulseImg from '../assets/CodePulse.webp'
+import procTraceImg from '../assets/ProcTrace.webp'
+import truckDriverImg from '../assets/TruckDriver.webp'
 
 const PROJECTS = [
   {
