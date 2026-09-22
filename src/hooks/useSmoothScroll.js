@@ -8,9 +8,18 @@ export function useSmoothScroll() {
       return
     }
 
-    // Initialize Lenis smooth scroll with physics-based linear interpolation (lerp).
-    // Using lerp instead of fixed duration/easing prevents discrete step-like jumps,
-    // providing continuous inertia, fluid velocity, and seamless boundary deceleration.
+    // Do NOT run Lenis on smartphones / touch screens.
+    const isTouchDevice =
+      typeof window !== 'undefined' &&
+      (window.matchMedia('(pointer: coarse)').matches ||
+        window.innerWidth <= 768 ||
+        ('ontouchstart' in window && !window.matchMedia('(hover: hover) and (pointer: fine)').matches))
+
+    if (isTouchDevice) {
+      return
+    }
+
+    // Initialize Lenis smooth scroll for desktop mouse wheels and trackpads
     const lenis = new Lenis({
       lerp: 0.1,
       wheelMultiplier: 1.0,
@@ -18,7 +27,6 @@ export function useSmoothScroll() {
       orientation: 'vertical',
       smoothWheel: true,
       syncTouch: false,
-      overscroll: false,
       autoRaf: true,
       autoResize: true,
     })
