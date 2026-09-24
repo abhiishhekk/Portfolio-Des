@@ -96,7 +96,8 @@ export default function Contact() {
   return (
     <section id="contact" className="contact-section" aria-label="Contact section">
       <div className="container">
-        <FadeContent delay={0}>
+        <div className="divider" style={{ marginBottom: '80px' }} />
+        <FadeContent delay={0} className="contact-card-wrapper">
           <GlowCursor
             className="contact-card"
             desktopOnly
