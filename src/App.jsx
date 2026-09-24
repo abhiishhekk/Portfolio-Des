@@ -1,5 +1,6 @@
 import { useTheme } from './hooks/useTheme'
 import { useSmoothScroll } from './hooks/useSmoothScroll'
+import SplashCursor from './components/SplashCursor'
 import Nav from './components/Nav'
 import Hero from './components/Hero'
 import About from './components/About'
@@ -15,6 +16,11 @@ export default function App() {
 
   return (
     <>
+      <SplashCursor
+        key={theme}
+        RAINBOW_MODE={false}
+        COLOR={theme === 'dark' ? '#ffffff' : '#000000'}
+      />
       <div className="bg-grid" aria-hidden="true" />
       <div className="noise" aria-hidden="true" />
 
