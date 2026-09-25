@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useTheme } from './hooks/useTheme'
 import { useSmoothScroll } from './hooks/useSmoothScroll'
 import SplashCursor from './components/SplashCursor'
@@ -10,13 +11,32 @@ import Education from './components/Education'
 import Contact from './components/Contact'
 import Footer from './components/Footer'
 import FullPageThemeSlider from './components/FullPageThemeSlider'
+import Preloader from './components/Preloader'
 
 export default function App() {
   const { theme, toggle, setTheme } = useTheme()
   useSmoothScroll()
+  const [isPreloaderMounted, setIsPreloaderMounted] = useState(true)
+  const [isPageVisible, setIsPageVisible] = useState(false)
 
   return (
     <>
+      {isPreloaderMounted && (
+        <Preloader
+          onExitStart={() => setIsPageVisible(true)}
+          onComplete={() => setIsPreloaderMounted(false)}
+        />
+      )}
+
+      <div
+        className="portfolio-app-root"
+        style={{
+          opacity: isPageVisible ? 1 : 0,
+          transition: 'opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1)',
+          pointerEvents: isPageVisible ? 'auto' : 'none',
+          minHeight: '100vh',
+        }}
+      >
       <SplashCursor
         RAINBOW_MODE={false}
         COLOR={theme === 'dark' ? '#ffffff' : '#000000'}
@@ -60,6 +80,7 @@ export default function App() {
       </main>
 
       <Footer />
+      </div>
     </>
   )
 }
