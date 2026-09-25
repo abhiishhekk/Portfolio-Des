@@ -1,0 +1,64 @@
+/* ==========================================================================
+   React Bits ChromaGrid Component Styles
+   ========================================================================== */
+
+.chroma-grid-container {
+  position: relative;
+  width: 100%;
+  border-radius: var(--radius);
+  z-index: 60;
+}
+
+/* Chromatic Aberration Spotlight Layer */
+.chroma-spotlight {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  overflow: hidden;
+  border-radius: inherit;
+}
+
+/* Individual chromatic color channels creating the chromatic aberration */
+.chroma-channel {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+.chroma-channel-magenta {
+  mix-blend-mode: screen;
+}
+
+.chroma-channel-cyan {
+  mix-blend-mode: screen;
+}
+
+.chroma-channel-amber {
+  mix-blend-mode: screen;
+}
+
+[data-theme="light"] .chroma-channel-magenta {
+  mix-blend-mode: multiply;
+  opacity: 0.7;
+}
+
+[data-theme="light"] .chroma-channel-cyan {
+  mix-blend-mode: multiply;
+  opacity: 0.7;
+}
+
+[data-theme="light"] .chroma-channel-amber {
+  mix-blend-mode: multiply;
+  opacity: 0.7;
+}
+
+/* Inner content wrapper */
+.chroma-grid-content {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+}

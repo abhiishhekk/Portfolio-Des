@@ -3,6 +3,7 @@ import FadeContent from './FadeContent'
 import TiltCard from './TiltCard'
 import BlurText from './BlurText'
 import DecayCard from './DecayCard'
+import ChromaGrid from './ChromaGrid'
 
 import urbanResolveImg from '../assets/UrbanResolve.webp'
 import teamSyncImg from '../assets/TeamSync.webp'
@@ -98,81 +99,83 @@ export default function Projects() {
           </FadeContent>
         </div>
 
-        <div className="projects-grid">
-          {PROJECTS.map((project, i) => (
-            <FadeContent key={project.id} delay={0.1 + i * 0.08}>
-              <TiltCard intensity={6}>
-                <article
-                  className="project-card"
-                  id={`project-${project.id}`}
-                  onClick={() => window.open(project.link, '_blank', 'noopener,noreferrer')}
-                  role="link"
-                  tabIndex={0}
-                  onKeyDown={e => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      e.preventDefault()
-                      window.open(project.link, '_blank', 'noopener,noreferrer')
-                    }
-                  }}
-                  aria-label={`Open ${project.title} on GitHub`}
-                >
-                  <div className="project-card-img">
-                    <DecayCard
-                      id={project.id}
-                      image={project.image}
-                      alt={project.title}
-                      maxDisplacement={70}
-                      movementBound={16}
-                    />
-                  </div>
+        <ChromaGrid radius={350} damping={0.45} fadeOut={0.6}>
+          <div className="projects-grid">
+            {PROJECTS.map((project, i) => (
+              <FadeContent key={project.id} delay={0.1 + i * 0.08}>
+                <TiltCard intensity={6}>
+                  <article
+                    className="project-card"
+                    id={`project-${project.id}`}
+                    onClick={() => window.open(project.link, '_blank', 'noopener,noreferrer')}
+                    role="link"
+                    tabIndex={0}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault()
+                        window.open(project.link, '_blank', 'noopener,noreferrer')
+                      }
+                    }}
+                    aria-label={`Open ${project.title} on GitHub`}
+                  >
+                    <div className="project-card-img">
+                      <DecayCard
+                        id={project.id}
+                        image={project.image}
+                        alt={project.title}
+                        maxDisplacement={70}
+                        movementBound={16}
+                      />
+                    </div>
 
-                  <div className="project-card-body">
-                    <div className="project-card-header">
-                      <h3 className="project-card-title">
+                    <div className="project-card-body">
+                      <div className="project-card-header">
+                        <h3 className="project-card-title">
+                          <a
+                            href={project.link}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="project-card-title-link"
+                            onClick={e => {
+                              e.stopPropagation()
+                              window.open(project.link, '_blank', 'noopener,noreferrer')
+                            }}
+                          >
+                            {project.title}
+                          </a>
+                        </h3>
                         <a
                           href={project.link}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="project-card-title-link"
+                          className="project-card-link-icon"
+                          aria-label={`Open ${project.title} GitHub repository in new tab`}
+                          title={`Open ${project.title} on GitHub`}
                           onClick={e => {
                             e.stopPropagation()
                             window.open(project.link, '_blank', 'noopener,noreferrer')
                           }}
                         >
-                          {project.title}
+                          <ExternalLink size={16} />
                         </a>
-                      </h3>
-                      <a
-                        href={project.link}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="project-card-link-icon"
-                        aria-label={`Open ${project.title} GitHub repository in new tab`}
-                        title={`Open ${project.title} on GitHub`}
-                        onClick={e => {
-                          e.stopPropagation()
-                          window.open(project.link, '_blank', 'noopener,noreferrer')
-                        }}
-                      >
-                        <ExternalLink size={16} />
-                      </a>
-                    </div>
+                      </div>
 
-                    <p className="project-card-desc">{project.description}</p>
+                      <p className="project-card-desc">{project.description}</p>
 
-                    <div className="project-card-tags">
-                      {project.tags.map(tag => (
-                        <span className="project-tag" key={tag}>
-                          {tag}
-                        </span>
-                      ))}
+                      <div className="project-card-tags">
+                        {project.tags.map(tag => (
+                          <span className="project-tag" key={tag}>
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                </article>
-              </TiltCard>
-            </FadeContent>
-          ))}
-        </div>
+                  </article>
+                </TiltCard>
+              </FadeContent>
+            ))}
+          </div>
+        </ChromaGrid>
       </div>
     </section>
   )

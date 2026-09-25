@@ -996,6 +996,8 @@ section {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: 20px;
+  position: relative;
+  z-index: 60;
 }
 
 .project-card {
@@ -1006,11 +1008,12 @@ section {
   transition: all var(--transition);
   cursor: pointer;
   position: relative;
+  z-index: 1;
 }
 
 .project-card:hover {
-  border-color: var(--fg);
-  box-shadow: var(--shadow-hover);
+  border-color: var(--border-strong);
+  box-shadow: var(--shadow);
   transform: translateY(-4px);
 }
 
