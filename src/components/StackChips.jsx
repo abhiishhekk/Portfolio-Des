@@ -182,8 +182,10 @@ export default function StackChips() {
       let isRunning = false
       let raf = 0
       let isIntersecting = false
+      let consecutiveStillFrames = 0
 
       const startPhysics = () => {
+        consecutiveStillFrames = 0
         if (!isRunning) {
           Runner.run(runner, engine)
           isRunning = true
@@ -210,15 +212,35 @@ export default function StackChips() {
           return
         }
 
+        let isMoving = false
         for (let i = 0; i < states.length; i++) {
           const s = states[i]
           const el = chipRefs.current[i]
           if (!s || !el) continue
           const { x, y } = s.body.position
           el.style.transform = `translate3d(${x - s.width / 2}px, ${y - s.height / 2}px, 0) rotate(${s.body.angle}rad)`
+          if (s.body.speed > 0.08 || s.body.angularSpeed > 0.05) {
+            isMoving = true
+          }
         }
+
+        if (!isMoving && !mouseConstraint.body) {
+          consecutiveStillFrames++
+          if (consecutiveStillFrames > 35) {
+            stopPhysics()
+            return
+          }
+        } else {
+          consecutiveStillFrames = 0
+        }
+
         raf = requestAnimationFrame(tick)
       }
+
+      const handleUserWake = () => {
+        startPhysics()
+      }
+      container.addEventListener('pointerdown', handleUserWake)
 
       const observer = new IntersectionObserver(([entry]) => {
         isIntersecting = entry.isIntersecting
@@ -245,6 +267,7 @@ export default function StackChips() {
 
       cleanup = () => {
         stopPhysics()
+        container.removeEventListener('pointerdown', handleUserWake)
         observer.disconnect()
         ro.disconnect()
         World.clear(world, false)

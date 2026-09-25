@@ -29,7 +29,16 @@ export default function BlurText({
             willChange: isInView ? 'auto' : 'transform, opacity',
           }}
           initial={{ opacity: 0, y: 20, filter: 'blur(8px)' }}
-          animate={isInView ? { opacity: 1, y: 0, filter: 'blur(0px)' } : {}}
+          animate={
+            isInView
+              ? {
+                  opacity: 1,
+                  y: 0,
+                  filter: 'blur(0px)',
+                  transitionEnd: { filter: 'none' },
+                }
+              : {}
+          }
           transition={{
             duration,
             delay: i * (delay / 1000),

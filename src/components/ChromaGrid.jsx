@@ -16,36 +16,41 @@ export default function ChromaGrid({
   const channelCyanRef = useRef(null)
   const channelAmberRef = useRef(null)
 
+  const rectRef = useRef(null)
   const posRef = useRef({ x: 0, y: 0 })
   const isInsideRef = useRef(false)
 
-  // Update chromatic gradients
-  const updateGradients = useCallback(
-    (x, y) => {
-      if (!channelMagentaRef.current || !channelCyanRef.current || !channelAmberRef.current) {
-        return
-      }
+  useEffect(() => {
+    if (spotlightRef.current) {
+      spotlightRef.current.style.setProperty('--chroma-r', `${radius}px`)
+    }
+  }, [radius])
 
-      // Channel 1: Magenta / Red-Violet (Offset slightly top-left)
-      const mX = x - 5
-      const mY = y - 3
-      channelMagentaRef.current.style.background = `radial-gradient(circle ${radius}px at ${mX}px ${mY}px, rgba(202, 198, 200, 0.18) 0%, rgba(255, 255, 255, 0.08) 40%, transparent 100%)`
+  // Update chromatic gradient positions via GPU-friendly CSS custom properties
+  const updateGradients = useCallback((x, y) => {
+    const el = spotlightRef.current
+    if (!el) return
+    el.style.setProperty('--chroma-mx', `${x - 5}px`)
+    el.style.setProperty('--chroma-my', `${y - 3}px`)
+    el.style.setProperty('--chroma-cx', `${x + 5}px`)
+    el.style.setProperty('--chroma-cy', `${y + 3}px`)
+    el.style.setProperty('--chroma-ax', `${x}px`)
+    el.style.setProperty('--chroma-ay', `${y}px`)
+  }, [])
 
-      // Channel 2: Cyan / Blue (Offset slightly bottom-right)
-      const cX = x + 5
-      const cY = y + 3
-      channelCyanRef.current.style.background = `radial-gradient(circle ${radius}px at ${cX}px ${cY}px, rgba(6, 182, 212, 0.18) 0%, rgba(14, 165, 233, 0.08) 40%, transparent 100%)`
-
-      // Channel 3: Amber / Violet center
-      channelAmberRef.current.style.background = `radial-gradient(circle ${radius * 0.75}px at ${x}px ${y}px, rgba(168, 85, 247, 0.12) 0%, rgba(245, 158, 11, 0.06) 50%, transparent 100%)`
-    },
-    [radius]
-  )
+  const handleMouseEnter = useCallback(() => {
+    if (containerRef.current) {
+      rectRef.current = containerRef.current.getBoundingClientRect()
+    }
+  }, [])
 
   const handleMouseMove = useCallback(
     (e) => {
       if (!containerRef.current) return
-      const rect = containerRef.current.getBoundingClientRect()
+      if (!rectRef.current) {
+        rectRef.current = containerRef.current.getBoundingClientRect()
+      }
+      const rect = rectRef.current
       const targetX = e.clientX - rect.left
       const targetY = e.clientY - rect.top
 
@@ -80,6 +85,7 @@ export default function ChromaGrid({
 
   const handleMouseLeave = useCallback(() => {
     isInsideRef.current = false
+    rectRef.current = null
     if (spotlightRef.current) {
       gsap.to(spotlightRef.current, {
         opacity: 0,
@@ -94,14 +100,16 @@ export default function ChromaGrid({
     const el = containerRef.current
     if (!el) return
 
+    el.addEventListener('mouseenter', handleMouseEnter)
     el.addEventListener('mousemove', handleMouseMove)
     el.addEventListener('mouseleave', handleMouseLeave)
 
     return () => {
+      el.removeEventListener('mouseenter', handleMouseEnter)
       el.removeEventListener('mousemove', handleMouseMove)
       el.removeEventListener('mouseleave', handleMouseLeave)
     }
-  }, [handleMouseMove, handleMouseLeave])
+  }, [handleMouseEnter, handleMouseMove, handleMouseLeave])
 
   return (
     <div ref={containerRef} className={`chroma-grid-container ${className}`}>

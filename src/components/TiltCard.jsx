@@ -1,8 +1,10 @@
-import { useRef } from 'react'
+import { useRef, useState } from 'react'
 import { motion, useMotionValue, useTransform, useSpring } from 'motion/react'
 
 export default function TiltCard({ children, className = '', style = {}, intensity = 10 }) {
   const ref = useRef(null)
+  const rectRef = useRef(null)
+  const [isHovered, setIsHovered] = useState(false)
   const x = useMotionValue(0)
   const y = useMotionValue(0)
 
@@ -13,9 +15,19 @@ export default function TiltCard({ children, className = '', style = {}, intensi
   const rotateX = useTransform(ySpring, [-0.5, 0.5], [intensity, -intensity])
   const rotateY = useTransform(xSpring, [-0.5, 0.5], [-intensity, intensity])
 
+  function handleMouseEnter() {
+    if (ref.current) {
+      rectRef.current = ref.current.getBoundingClientRect()
+    }
+    setIsHovered(true)
+  }
+
   function handleMouseMove(e) {
     if (!ref.current) return
-    const rect = ref.current.getBoundingClientRect()
+    if (!rectRef.current) {
+      rectRef.current = ref.current.getBoundingClientRect()
+    }
+    const rect = rectRef.current
     const xVal = (e.clientX - rect.left) / rect.width - 0.5
     const yVal = (e.clientY - rect.top) / rect.height - 0.5
     x.set(xVal)
@@ -23,6 +35,8 @@ export default function TiltCard({ children, className = '', style = {}, intensi
   }
 
   function handleMouseLeave() {
+    rectRef.current = null
+    setIsHovered(false)
     x.set(0)
     y.set(0)
   }
@@ -35,6 +49,7 @@ export default function TiltCard({ children, className = '', style = {}, intensi
         perspective: 800,
         ...style,
       }}
+      onMouseEnter={handleMouseEnter}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
     >
@@ -43,7 +58,7 @@ export default function TiltCard({ children, className = '', style = {}, intensi
           rotateX,
           rotateY,
           transform: 'translateZ(0)',
-          willChange: 'transform',
+          willChange: isHovered ? 'transform' : 'auto',
         }}
       >
         {children}

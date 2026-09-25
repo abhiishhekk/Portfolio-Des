@@ -7,7 +7,7 @@ export default function DecayCard({
   image,
   alt = '',
   baseFrequency = 0.016,
-  numOctaves = 4,
+  numOctaves = 3,
   seed = 4,
   maxDisplacement = 65,
   movementBound = 18,
@@ -18,6 +18,7 @@ export default function DecayCard({
   const containerRef = useRef(null)
   const gRef = useRef(null)
   const displacementMapRef = useRef(null)
+  const imageRef = useRef(null)
 
   const cursor = useRef({ x: 0, y: 0, active: false })
   const cachedCursor = useRef({ x: 0, y: 0 })
@@ -65,6 +66,9 @@ export default function DecayCard({
 
     const handleMouseEnter = ev => {
       updateDimensions()
+      if (imageRef.current) {
+        imageRef.current.setAttribute('filter', `url(#${filterId})`)
+      }
       cursor.current.x = ev.offsetX
       cursor.current.y = ev.offsetY
       cachedCursor.current.x = cursor.current.x
@@ -159,6 +163,7 @@ export default function DecayCard({
         imgValues.displacementScale = 0
         if (gRef.current) gsap.set(gRef.current, { x: 0, y: 0, rotateZ: 0 })
         if (displacementMapRef.current) displacementMapRef.current.setAttribute('scale', '0')
+        if (imageRef.current) imageRef.current.removeAttribute('filter')
         rafId = 0
         return
       }
@@ -222,12 +227,12 @@ export default function DecayCard({
         </defs>
         <g ref={gRef}>
           <image
+            ref={imageRef}
             href={image}
             x="0"
             y="0"
             width="600"
             height="338"
-            filter={`url(#${filterId})`}
             preserveAspectRatio="xMidYMid slice"
           />
         </g>

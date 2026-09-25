@@ -93,14 +93,13 @@ export default function Nav({ theme, toggleTheme, setTheme }) {
       mql.addListener(handleMediaChange)
     }
 
-    // ResizeObserver detects when PC nav switches from display: none to display: flex
+    // ResizeObserver detects when PC nav switches layout or changes size
     let resizeObserver
-    if (typeof ResizeObserver !== 'undefined') {
+    if (typeof ResizeObserver !== 'undefined' && navRef.current) {
       resizeObserver = new ResizeObserver(() => {
         refreshIndicator()
       })
-      if (navRef.current) resizeObserver.observe(navRef.current)
-      if (document.body) resizeObserver.observe(document.body)
+      resizeObserver.observe(navRef.current)
     }
 
     document.fonts?.ready?.then(() => {
@@ -118,7 +117,11 @@ export default function Nav({ theme, toggleTheme, setTheme }) {
       }
       resizeObserver?.disconnect()
     }
-  }, [active, refreshIndicator])
+  }, [refreshIndicator])
+
+  useEffect(() => {
+    updateIndicator(active)
+  }, [active, updateIndicator])
 
   useEffect(() => {
     const sections = NAV_ITEMS.map(i => ({

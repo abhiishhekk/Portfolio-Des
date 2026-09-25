@@ -3,12 +3,12 @@ import { useEffect, useRef } from 'react';
 
 function SplashCursor({
   SIM_RESOLUTION = 128,
-  DYE_RESOLUTION = 1440,
+  DYE_RESOLUTION = 1024,
   CAPTURE_RESOLUTION = 512,
   DENSITY_DISSIPATION = 4,
   VELOCITY_DISSIPATION = 2,
   PRESSURE = 0.1,
-  PRESSURE_ITERATIONS = 20,
+  PRESSURE_ITERATIONS = 14,
   CURL = 3,
   SPLAT_RADIUS = 0.2,
   SPLAT_FORCE = 6000,
@@ -692,9 +692,37 @@ function SplashCursor({
     initFramebuffers();
     let lastUpdateTime = Date.now();
     let colorUpdateTimer = 0.0;
+    let lastActiveTime = 0;
+    let isSleeping = true;
+
+    function wakeUp() {
+      lastActiveTime = performance.now();
+      if (isSleeping && isActive && !document.hidden) {
+        isSleeping = false;
+        lastUpdateTime = Date.now();
+        if (resizeCanvas()) initFramebuffers();
+        if (!animationFrameId.current) {
+          animationFrameId.current = requestAnimationFrame(updateFrame);
+        }
+      }
+    }
 
     function updateFrame() {
-      if (!isActive) return;
+      if (!isActive || document.hidden) {
+        animationFrameId.current = null;
+        isSleeping = true;
+        return;
+      }
+      const now = performance.now();
+      const hasPendingInput = pointers.some(p => p.moved || p.down);
+      if (now - lastActiveTime > 2000 && !hasPendingInput) {
+        gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
+        gl.clearColor(0.0, 0.0, 0.0, 0.0);
+        gl.clear(gl.COLOR_BUFFER_BIT);
+        isSleeping = true;
+        animationFrameId.current = null;
+        return;
+      }
       const dt = calcDeltaTime();
       if (resizeCanvas()) initFramebuffers();
       updateColors(dt);
@@ -986,7 +1014,7 @@ function SplashCursor({
     }
 
     function scaleByPixelRatio(input) {
-      const pixelRatio = window.devicePixelRatio || 1;
+      const pixelRatio = Math.min(window.devicePixelRatio || 1, 1.5);
       return Math.floor(input * pixelRatio);
     }
 
@@ -1002,6 +1030,7 @@ function SplashCursor({
 
     // Named event handlers for proper cleanup
     function handleMouseDown(e) {
+      wakeUp();
       let pointer = pointers[0];
       let posX = scaleByPixelRatio(e.clientX);
       let posY = scaleByPixelRatio(e.clientY);
@@ -1011,6 +1040,7 @@ function SplashCursor({
 
     let firstMouseMoveHandled = false;
     function handleMouseMove(e) {
+      wakeUp();
       let pointer = pointers[0];
       let posX = scaleByPixelRatio(e.clientX);
       let posY = scaleByPixelRatio(e.clientY);
@@ -1030,7 +1060,9 @@ function SplashCursor({
         let posX = scaleByPixelRatio(touches[i].clientX);
         let posY = scaleByPixelRatio(touches[i].clientY);
         updatePointerDownData(pointer, touches[i].identifier, posX, posY);
+        clickSplat(pointer);
       }
+      wakeUp();
     }
 
     function handleTouchMove(e) {
@@ -1041,6 +1073,7 @@ function SplashCursor({
         let posY = scaleByPixelRatio(touches[i].clientY);
         updatePointerMoveData(pointer, posX, posY, pointer.color);
       }
+      wakeUp();
     }
 
     function handleTouchEnd(e) {
@@ -1051,14 +1084,38 @@ function SplashCursor({
       }
     }
 
+    function handleVisibilityChange() {
+      if (document.hidden) {
+        if (animationFrameId.current) {
+          cancelAnimationFrame(animationFrameId.current);
+          animationFrameId.current = null;
+        }
+        isSleeping = true;
+      }
+    }
+
+    function handleResize() {
+      if (resizeCanvas()) {
+        initFramebuffers();
+      }
+    }
+
     // Add event listeners
     window.addEventListener('mousedown', handleMouseDown);
     window.addEventListener('mousemove', handleMouseMove);
     window.addEventListener('touchstart', handleTouchStart, { passive: true });
     window.addEventListener('touchmove', handleTouchMove, { passive: true });
     window.addEventListener('touchend', handleTouchEnd, { passive: true });
+    window.addEventListener('resize', handleResize);
+    window.addEventListener('orientationchange', handleResize);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
 
-    updateFrame();
+    // Initial canvas setup without continuously spinning the RAF loop until user interaction
+    if (resizeCanvas()) initFramebuffers();
+    gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
+    gl.clearColor(0.0, 0.0, 0.0, 0.0);
+    gl.clear(gl.COLOR_BUFFER_BIT);
+    isSleeping = true;
 
     // Cleanup function
     return () => {
@@ -1076,6 +1133,9 @@ function SplashCursor({
       window.removeEventListener('touchstart', handleTouchStart);
       window.removeEventListener('touchmove', handleTouchMove);
       window.removeEventListener('touchend', handleTouchEnd);
+      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('orientationchange', handleResize);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
