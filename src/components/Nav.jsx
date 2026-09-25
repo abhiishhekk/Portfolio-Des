@@ -1,6 +1,6 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { motion } from 'motion/react'
-import { Sun, Moon, Menu, X, Github, Linkedin, Code2, Mail } from 'lucide-react'
+import { Menu, X, Github, Linkedin, Code2, Mail } from 'lucide-react'
 import StaggeredMenu from './StaggeredMenu'
 
 const NAV_ITEMS = [
@@ -19,17 +19,106 @@ const SOCIAL_ITEMS = [
   { label: 'Email', href: 'mailto:abhishekkr.init@gmail.com', icon: Mail },
 ]
 
-export default function Nav({ theme, toggleTheme }) {
+export default function Nav({ theme, toggleTheme, setTheme }) {
   const [active, setActive] = useState('Home')
-  const [indicatorStyle, setIndicatorStyle] = useState({ left: 0, width: 0 })
+  const [indicatorStyle, setIndicatorStyle] = useState({ left: 0, width: 0, ready: false })
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const navRef = useRef(null)
   const itemRefs = useRef({})
   const menuRef = useRef(null)
+  const activeRef = useRef(active)
+  activeRef.current = active
+
+  const updateIndicator = useCallback((label) => {
+    const targetLabel = label || activeRef.current
+    const el = itemRefs.current[targetLabel]
+    const nav = navRef.current
+    if (el && nav) {
+      const navRect = nav.getBoundingClientRect()
+      const elRect = el.getBoundingClientRect()
+      if (elRect.width > 0 && navRect.width > 0) {
+        setIndicatorStyle({
+          left: elRect.left - navRect.left,
+          width: elRect.width,
+          ready: true,
+        })
+        return true
+      }
+    }
+    return false
+  }, [])
+
+  const refreshIndicator = useCallback(() => {
+    if (updateIndicator(activeRef.current)) return () => {}
+
+    let frameCount = 0
+    let rafId = null
+    const retry = () => {
+      frameCount++
+      if (updateIndicator(activeRef.current) || frameCount >= 12) return
+      rafId = requestAnimationFrame(retry)
+    }
+    rafId = requestAnimationFrame(retry)
+
+    const timer1 = setTimeout(() => updateIndicator(activeRef.current), 40)
+    const timer2 = setTimeout(() => updateIndicator(activeRef.current), 120)
+    const timer3 = setTimeout(() => updateIndicator(activeRef.current), 300)
+
+    return () => {
+      if (rafId) cancelAnimationFrame(rafId)
+      clearTimeout(timer1)
+      clearTimeout(timer2)
+      clearTimeout(timer3)
+    }
+  }, [updateIndicator])
 
   useEffect(() => {
-    updateIndicator(active)
-  }, [active])
+    const cleanupRetries = refreshIndicator()
+
+    const handleResize = () => {
+      refreshIndicator()
+    }
+
+    window.addEventListener('resize', handleResize)
+    window.addEventListener('orientationchange', handleResize)
+
+    // Media query listener specifically for switching between phone (<= 768px) and PC (> 768px)
+    const mql = window.matchMedia('(min-width: 769px)')
+    const handleMediaChange = () => {
+      refreshIndicator()
+    }
+    if (mql.addEventListener) {
+      mql.addEventListener('change', handleMediaChange)
+    } else if (mql.addListener) {
+      mql.addListener(handleMediaChange)
+    }
+
+    // ResizeObserver detects when PC nav switches from display: none to display: flex
+    let resizeObserver
+    if (typeof ResizeObserver !== 'undefined') {
+      resizeObserver = new ResizeObserver(() => {
+        refreshIndicator()
+      })
+      if (navRef.current) resizeObserver.observe(navRef.current)
+      if (document.body) resizeObserver.observe(document.body)
+    }
+
+    document.fonts?.ready?.then(() => {
+      refreshIndicator()
+    })
+
+    return () => {
+      cleanupRetries?.()
+      window.removeEventListener('resize', handleResize)
+      window.removeEventListener('orientationchange', handleResize)
+      if (mql.removeEventListener) {
+        mql.removeEventListener('change', handleMediaChange)
+      } else if (mql.removeListener) {
+        mql.removeListener(handleMediaChange)
+      }
+      resizeObserver?.disconnect()
+    }
+  }, [active, refreshIndicator])
 
   useEffect(() => {
     const sections = NAV_ITEMS.map(i => ({
@@ -56,18 +145,6 @@ export default function Nav({ theme, toggleTheme }) {
 
     return () => observer.disconnect()
   }, [])
-
-  function updateIndicator(label) {
-    const el = itemRefs.current[label]
-    if (el && navRef.current) {
-      const navRect = navRef.current.getBoundingClientRect()
-      const elRect = el.getBoundingClientRect()
-      setIndicatorStyle({
-        left: elRect.left - navRect.left,
-        width: elRect.width,
-      })
-    }
-  }
 
   function handleClick(item, e) {
     if (e && typeof e.preventDefault === 'function') {
@@ -103,15 +180,23 @@ export default function Nav({ theme, toggleTheme }) {
         <div className="nav-pill" ref={navRef}>
           <motion.span
             className="nav-indicator"
-            animate={indicatorStyle}
-            transition={{ type: 'spring', stiffness: 380, damping: 36 }}
+            animate={{
+              left: indicatorStyle.left,
+              width: indicatorStyle.width,
+              opacity: indicatorStyle.ready && indicatorStyle.width > 0 ? 1 : 0,
+            }}
+            transition={
+              indicatorStyle.ready
+                ? { type: 'spring', stiffness: 380, damping: 36 }
+                : { duration: 0 }
+            }
             aria-hidden="true"
           />
           {NAV_ITEMS.map(item => (
             <a
               key={item.label}
               href={item.href}
-              className={`nav-item ${active === item.label ? 'active' : ''}`}
+              className={`nav-item ${active === item.label ? (indicatorStyle.ready && indicatorStyle.width > 0 ? 'active' : 'active-pending') : ''}`}
               ref={el => (itemRefs.current[item.label] = el)}
               onClick={e => handleClick(item, e)}
               aria-current={active === item.label ? 'page' : undefined}
@@ -120,46 +205,9 @@ export default function Nav({ theme, toggleTheme }) {
             </a>
           ))}
         </div>
-
-        <div className="nav-right">
-          <button
-            className="theme-btn"
-            onClick={toggleTheme}
-            aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
-            id="theme-toggle-btn"
-          >
-            <motion.span
-              key={theme}
-              initial={{ opacity: 0, rotate: -90, scale: 0.6 }}
-              animate={{ opacity: 1, rotate: 0, scale: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.25 }}
-              style={{ display: 'flex' }}
-            >
-              {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
-            </motion.span>
-          </button>
-        </div>
       </nav>
 
-      <div className="nav nav-mobile" role="navigation" aria-label="Mobile navigation">
-        <button
-          className="theme-btn"
-          onClick={toggleTheme}
-          aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
-          id="theme-toggle-mobile-btn"
-        >
-          <motion.span
-            key={theme}
-            initial={{ opacity: 0, rotate: -90, scale: 0.6 }}
-            animate={{ opacity: 1, rotate: 0, scale: 1 }}
-            transition={{ duration: 0.25 }}
-            style={{ display: 'flex' }}
-          >
-            {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
-          </motion.span>
-        </button>
-
+      <div className="nav-mobile" role="navigation" aria-label="Mobile navigation">
         <div className="nav-mobile-center">
           <span className="nav-current-page">{active}</span>
         </div>

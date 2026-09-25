@@ -9,15 +9,15 @@ import Projects from './components/Projects'
 import Education from './components/Education'
 import Contact from './components/Contact'
 import Footer from './components/Footer'
+import FullPageThemeSlider from './components/FullPageThemeSlider'
 
 export default function App() {
-  const { theme, toggle } = useTheme()
+  const { theme, toggle, setTheme } = useTheme()
   useSmoothScroll()
 
   return (
     <>
       <SplashCursor
-        key={theme}
         RAINBOW_MODE={false}
         COLOR={theme === 'dark' ? '#ffffff' : '#000000'}
       />
@@ -46,7 +46,9 @@ export default function App() {
         Skip to main content
       </a>
 
-      <Nav theme={theme} toggleTheme={toggle} />
+      <Nav theme={theme} toggleTheme={toggle} setTheme={setTheme} />
+
+      <FullPageThemeSlider theme={theme} setTheme={setTheme} />
 
       <main id="main-content">
         <Hero />

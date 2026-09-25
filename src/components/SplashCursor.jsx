@@ -22,6 +22,13 @@ function SplashCursor({
 }) {
   const canvasRef = useRef(null);
   const animationFrameId = useRef(null);
+  const configRef = useRef(null);
+
+  useEffect(() => {
+    if (configRef.current) {
+      configRef.current.COLOR = COLOR;
+    }
+  }, [COLOR]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -62,6 +69,7 @@ function SplashCursor({
       RAINBOW_MODE,
       COLOR
     };
+    configRef.current = config;
 
     let pointers = [new pointerPrototype()];
 
@@ -1046,9 +1054,9 @@ function SplashCursor({
     // Add event listeners
     window.addEventListener('mousedown', handleMouseDown);
     window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('touchstart', handleTouchStart);
-    window.addEventListener('touchmove', handleTouchMove, false);
-    window.addEventListener('touchend', handleTouchEnd);
+    window.addEventListener('touchstart', handleTouchStart, { passive: true });
+    window.addEventListener('touchmove', handleTouchMove, { passive: true });
+    window.addEventListener('touchend', handleTouchEnd, { passive: true });
 
     updateFrame();
 

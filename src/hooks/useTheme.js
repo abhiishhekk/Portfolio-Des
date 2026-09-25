@@ -15,7 +15,16 @@ export function useTheme() {
     localStorage.setItem('theme', theme)
   }, [theme])
 
-  const toggle = () => setTheme(t => (t === 'dark' ? 'light' : 'dark'))
+  const changeTheme = (newTheme) => {
+    const val = typeof newTheme === 'function' ? newTheme(theme) : newTheme
+    if (typeof document !== 'undefined') {
+      document.documentElement.setAttribute('data-theme', val)
+      localStorage.setItem('theme', val)
+    }
+    setTheme(val)
+  }
 
-  return { theme, toggle }
+  const toggle = () => changeTheme(t => (t === 'dark' ? 'light' : 'dark'))
+
+  return { theme, toggle, setTheme: changeTheme }
 }

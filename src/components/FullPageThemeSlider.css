@@ -1,0 +1,176 @@
+/* ==========================================================================
+   Full Page Theme Comparison Slider
+   ========================================================================== */
+
+/* The Full-Screen Real-Time Inversion Layer (active while dragging/animating) */
+.fullpage-theme-reveal {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 99990;
+  background: #ffffff;
+  mix-blend-mode: difference;
+  will-change: clip-path;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* Vertical Divider Line spanning full viewport height */
+.fullpage-slider-line {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  height: 100vh;
+  background: var(--fg);
+  z-index: 99995;
+  pointer-events: none;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.4), 0 0 20px rgba(255, 255, 255, 0.2);
+  transform: translateX(-50%) translateZ(0);
+  will-change: left;
+  backface-visibility: hidden;
+}
+
+
+/* The Draggable Knob Handle - ALWAYS CIRCULAR */
+.fullpage-slider-handle {
+  position: fixed;
+  top: 50%;
+  transform: translate(-50%, -50%) translateZ(0);
+  z-index: 100000;
+  cursor: ew-resize;
+  user-select: none;
+  touch-action: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50% !important;
+  background: var(--bg);
+  color: var(--fg);
+  border: none !important;
+  outline: none !important;
+  -webkit-tap-highlight-color: transparent !important;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.18);
+  transition: box-shadow 0.2s ease;
+  will-change: left;
+  backface-visibility: hidden;
+}
+
+/* Half visible on left boundary when at rest */
+.fullpage-slider-handle.at-left.is-at-rest {
+  left: 0 !important;
+  transform: translate(-50%, -50%);
+}
+
+.fullpage-slider-handle.at-left.is-at-rest .fullpage-slider-grip {
+  transform: translateX(11px);
+}
+
+/* Half visible on right boundary when at rest */
+.fullpage-slider-handle.at-right.is-at-rest {
+  left: 100% !important;
+  transform: translate(-50%, -50%);
+}
+
+.fullpage-slider-handle.at-right.is-at-rest .fullpage-slider-grip {
+  transform: translateX(-11px);
+}
+
+/* Hover state only on pointer devices, preventing sticky ring on smartphones */
+@media (hover: hover) and (pointer: fine) {
+  .fullpage-slider-handle:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+  }
+}
+
+.fullpage-slider-handle.is-dragging {
+  cursor: grabbing;
+  transform: translate(-50%, -50%) scale(1.08) translateZ(0);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+}
+
+.fullpage-slider-handle:focus {
+  outline: none !important;
+}
+
+.fullpage-slider-handle:focus-visible {
+  outline: 2px solid var(--fg);
+  outline-offset: 3px;
+}
+
+/* Handle Icons and Grip */
+.fullpage-slider-handle-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.fullpage-slider-grip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--fg);
+  transition: transform 0.2s ease;
+}
+
+/* Interactive Floating Tooltip Badge */
+.fullpage-slider-tooltip {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: var(--fg);
+  color: var(--bg);
+  padding: 6px 12px;
+  border-radius: var(--radius-full);
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+  pointer-events: none;
+  box-shadow: none !important;
+  opacity: 0;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+/* Tooltip positioned outside the visible half */
+.fullpage-slider-handle.at-left .fullpage-slider-tooltip {
+  left: calc(50% + 28px);
+  transform: translateY(-50%) translateX(-4px);
+}
+
+.fullpage-slider-handle.at-right .fullpage-slider-tooltip {
+  right: calc(50% + 28px);
+  transform: translateY(-50%) translateX(4px);
+}
+
+.fullpage-slider-handle:hover .fullpage-slider-tooltip {
+  opacity: 1;
+  transform: translateY(-50%) translateX(0);
+}
+
+.fullpage-slider-handle.is-dragging .fullpage-slider-tooltip {
+  opacity: 0 !important;
+  pointer-events: none;
+}
+
+@media (max-width: 640px) {
+  .fullpage-slider-handle {
+    width: 40px;
+    height: 40px;
+  }
+  .fullpage-slider-handle.at-left.is-at-rest .fullpage-slider-grip {
+    transform: translateX(9px);
+  }
+  .fullpage-slider-handle.at-right.is-at-rest .fullpage-slider-grip {
+    transform: translateX(-9px);
+  }
+  .fullpage-slider-tooltip {
+    display: none;
+  }
+}
