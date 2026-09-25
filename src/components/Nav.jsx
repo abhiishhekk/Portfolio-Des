@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
-import { motion, AnimatePresence } from 'motion/react'
-import { Sun, Moon, Menu, X } from 'lucide-react'
+import { motion } from 'motion/react'
+import { Sun, Moon, Menu, X, Github, Linkedin, Code2, Mail } from 'lucide-react'
+import StaggeredMenu from './StaggeredMenu'
 
 const NAV_ITEMS = [
   { label: 'Home', href: '#home' },
@@ -9,6 +10,13 @@ const NAV_ITEMS = [
   { label: 'Projects', href: '#projects' },
   { label: 'Education', href: '#education' },
   { label: 'Contact', href: '#contact' },
+]
+
+const SOCIAL_ITEMS = [
+  { label: 'GitHub', href: 'https://github.com/abhiishhekk', icon: Github },
+  { label: 'LinkedIn', href: 'https://www.linkedin.com/in/abhishek-kumar-init/', icon: Linkedin },
+  { label: 'LeetCode', href: 'https://leetcode.com/u/abhiishhek_k/', icon: Code2 },
+  { label: 'Email', href: 'mailto:abhishekkr.init@gmail.com', icon: Mail },
 ]
 
 export default function Nav({ theme, toggleTheme }) {
@@ -78,7 +86,9 @@ export default function Nav({ theme, toggleTheme }) {
   }
 
   function handleClick(item, e) {
-    e.preventDefault()
+    if (e && typeof e.preventDefault === 'function') {
+      e.preventDefault()
+    }
     setActive(item.label)
     setMobileMenuOpen(false)
     if (window.__lenis) {
@@ -176,38 +186,21 @@ export default function Nav({ theme, toggleTheme }) {
       </div>
 
 
-      <AnimatePresence>
-        {mobileMenuOpen && (
-          <motion.div
-            className="nav-mobile-dropdown"
-            initial={{ opacity: 0, y: -8, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -8, scale: 0.95 }}
-            transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-          >
-            <div className="nav-mobile-list">
-              {NAV_ITEMS.map(item => (
-                <a
-                  key={item.label}
-                  href={item.href}
-                  className={`nav-mobile-item ${active === item.label ? 'active' : ''}`}
-                  onClick={e => handleClick(item, e)}
-                  aria-current={active === item.label ? 'page' : undefined}
-                >
-                  <span>{item.label}</span>
-                  {active === item.label && (
-                    <motion.span
-                      className="nav-mobile-dot"
-                      layoutId="active-dot"
-                      aria-hidden="true"
-                    />
-                  )}
-                </a>
-              ))}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <StaggeredMenu
+        isOpen={mobileMenuOpen}
+        onClose={() => setMobileMenuOpen(false)}
+        items={NAV_ITEMS}
+        activeItem={active}
+        onItemClick={handleClick}
+        socialItems={SOCIAL_ITEMS}
+        colors={
+          theme === 'dark'
+            ? ['#8d8d8dff', '#fffcfcff', '#0a0a0a']
+            : ['#a4a3a3ff', '#070707ff', '#ffffff']
+        }
+        displayItemNumbering={true}
+        displaySocials={true}
+      />
     </header>
   )
 }

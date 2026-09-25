@@ -3,6 +3,7 @@ import { motion } from 'motion/react'
 import { Copy, Check, Github, Linkedin, Code2 } from 'lucide-react'
 import FadeContent from './FadeContent'
 import GlowCursor from './GlowCursor'
+import DecryptedText from './DecryptedText'
 
 const EMAIL = 'abhishekkr.init@gmail.com'
 
@@ -176,7 +177,14 @@ export default function Contact() {
                 ) : (
                   <>
                     <Copy size={18} style={{ flexShrink: 0 }} />
-                    <span className="email-text">{EMAIL}</span>
+                    <DecryptedText
+                      text={EMAIL}
+                      tag="span"
+                      parentClassName="email-text"
+                      speed={35}
+                      sequential={true}
+                      animateOn="view"
+                    />
                   </>
                 )}
               </motion.button>
