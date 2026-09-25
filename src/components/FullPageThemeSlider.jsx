@@ -31,8 +31,15 @@ export default function FullPageThemeSlider({ theme = 'dark', setTheme }) {
   useEffect(() => {
     if (isDraggingRef.current || isTransitioning) return
 
+    let lastWidth = typeof window !== 'undefined' ? window.innerWidth : 0
+
     const updateRestPos = () => {
-      const targetX = isDark ? window.innerWidth : 0
+      const currentWidth = typeof window !== 'undefined' ? window.innerWidth : 0
+      // Ignore height-only resize events (e.g. mobile Chrome address bar retracting/expanding on scroll)
+      if (Math.abs(currentWidth - lastWidth) < 2) return
+      lastWidth = currentWidth
+
+      const targetX = isDark ? currentWidth : 0
       setHandleX(targetX)
       handleXRef.current = targetX
       transitionFromThemeRef.current = theme
