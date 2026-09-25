@@ -3,11 +3,11 @@ import ThoughtLine from './ThoughtLine';
 import './Preloader.css';
 
 const STEP_LIST = [
-  'Hold on for a moment...',
-  'Initializing portfolio environment',
+  'Starting the engine',
+  'Initializing environment',
   'Loading projects, skills and visual assets',
   'Preparing interactive space',
-  "We are ready, Let's Explore!",
+  "Almost done...",
 ];
 
 export default function Preloader({ theme, onExitStart, onComplete }) {
@@ -47,10 +47,10 @@ export default function Preloader({ theme, onExitStart, onComplete }) {
     }
 
     // Sequentially reveal trace steps across the loading duration
-    const totalRevealTime = 3400;
+    const totalRevealTime = 2200;
     const stepInterval = STEP_LIST.length > 1 ? totalRevealTime / (STEP_LIST.length - 1) : 0;
     const stepTimers = STEP_LIST.map((_, index) => {
-      const delay = 400 + Math.round(index * stepInterval);
+      const delay = 300 + Math.round(index * stepInterval);
       return setTimeout(() => {
         setSteps(STEP_LIST.slice(0, index + 1));
       }, delay);
@@ -59,10 +59,10 @@ export default function Preloader({ theme, onExitStart, onComplete }) {
     let settleTimeout;
     let finishTimeout;
 
-    // Check after minimum ~4.3 seconds (giving time for the final step to display) and document is ready
+    // Check after minimum 3.0 seconds (giving time for the final step to display) and document is ready
     const interval = setInterval(() => {
       const elapsed = Date.now() - startTimeRef.current;
-      if (elapsed >= 4300 && pageLoadedRef.current) {
+      if (elapsed >= 3000 && pageLoadedRef.current) {
         clearInterval(interval);
 
         // Settle ThoughtLine: folds trace and transitions to "Messages Over"
@@ -76,8 +76,8 @@ export default function Preloader({ theme, onExitStart, onComplete }) {
 
           finishTimeout = setTimeout(() => {
             onComplete?.();
-          }, 650);
-        }, 850);
+          }, 600);
+        }, 750);
       }
     }, 100);
 
@@ -103,7 +103,7 @@ export default function Preloader({ theme, onExitStart, onComplete }) {
       <ThoughtLine
         working={working}
         steps={steps}
-        label="You got messages from Abhishek…"
+        label="Getting things ready for you..."
         doneLabel="Messages Over"
         glyph="sparkle"
         fontSize={16}
