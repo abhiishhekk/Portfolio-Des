@@ -27,7 +27,9 @@ export default function StaggeredMenu({
   const socialsRef = useRef([])
 
   const [mounted, setMounted] = useState(false)
-  const isAnimatingRef = useRef(false)
+  const isClosingRef = useRef(false)
+  const openTimelineRef = useRef(null)
+  const closeTimelineRef = useRef(null)
 
   // Mount when isOpen becomes true
   useEffect(() => {
@@ -35,6 +37,15 @@ export default function StaggeredMenu({
       setMounted(true)
     }
   }, [isOpen])
+
+  // Clean up timelines on unmount
+  useEffect(() => {
+    return () => {
+      openTimelineRef.current?.kill()
+      closeTimelineRef.current?.kill()
+      document.body.style.overflow = ''
+    }
+  }, [])
 
   // GSAP Entrance and Exit
   useEffect(() => {
@@ -53,14 +64,15 @@ export default function StaggeredMenu({
     const sign = position === 'right' ? 1 : -1
 
     if (isOpen) {
-      isAnimatingRef.current = true
+      isClosingRef.current = false
       document.body.style.overflow = 'hidden'
 
-      const tl = gsap.timeline({
-        onComplete: () => {
-          isAnimatingRef.current = false
-        },
-      })
+      if (closeTimelineRef.current) {
+        closeTimelineRef.current.kill()
+      }
+
+      const tl = gsap.timeline()
+      openTimelineRef.current = tl
 
       // Reset initial styles
       gsap.set(container, { visibility: 'visible' })
@@ -134,8 +146,28 @@ export default function StaggeredMenu({
   }, [isOpen, mounted, position])
 
   const handleClose = (itemToNavigate = null, event = null) => {
-    if (isAnimatingRef.current) return
-    isAnimatingRef.current = true
+    // If already closing, ignore duplicate triggers
+    if (isClosingRef.current) return
+    isClosingRef.current = true
+
+    // If navigation item clicked, trigger scroll navigation immediately
+    if (itemToNavigate && onItemClick) {
+      document.body.style.overflow = ''
+      onItemClick(itemToNavigate, event)
+    }
+
+    // Cancel in-flight entrance animations immediately so exit starts without delay
+    if (openTimelineRef.current) {
+      openTimelineRef.current.kill()
+    }
+    gsap.killTweensOf([
+      layer1Ref.current,
+      layer2Ref.current,
+      panelRef.current,
+      backdropRef.current,
+      headerRef.current,
+      ...itemsRef.current,
+    ])
 
     const container = containerRef.current
     const backdrop = backdropRef.current
@@ -144,46 +176,36 @@ export default function StaggeredMenu({
     const panel = panelRef.current
     const header = headerRef.current
     const itemEls = itemsRef.current.filter(Boolean)
-    const footer = footerRef.current
-    const socialEls = socialsRef.current.filter(Boolean)
 
     const sign = position === 'right' ? 1 : -1
 
     const tl = gsap.timeline({
       onComplete: () => {
         document.body.style.overflow = ''
-        isAnimatingRef.current = false
+        isClosingRef.current = false
         setMounted(false)
         if (onClose) onClose()
-        if (itemToNavigate && onItemClick) {
-          onItemClick(itemToNavigate, event)
-        }
       },
     })
+    closeTimelineRef.current = tl
 
     // Items stagger out
     tl.to(itemEls, {
       opacity: 0,
-      y: -18,
-      duration: 0.22,
+      y: -16,
+      duration: 0.2,
       stagger: 0.02,
       ease: 'power2.in',
     })
 
-    if (socialEls.length) {
-      tl.to(socialEls, { opacity: 0, y: 10, duration: 0.18, stagger: 0.015 }, '<')
-    }
-    if (footer) {
-      tl.to(footer, { opacity: 0, duration: 0.18 }, '<')
-    }
     if (header) {
       tl.to(header, { opacity: 0, duration: 0.18 }, '<')
     }
 
-    tl.to(panel, { xPercent: 100 * sign, duration: 0.42, ease: 'power3.inOut' }, '-=0.08')
-      .to(layer2, { xPercent: 100 * sign, duration: 0.42, ease: 'power3.inOut' }, '-=0.35')
-      .to(layer1, { xPercent: 100 * sign, duration: 0.42, ease: 'power3.inOut' }, '-=0.35')
-      .to(backdrop, { opacity: 0, duration: 0.25, ease: 'power2.in' }, '-=0.25')
+    tl.to(panel, { xPercent: 100 * sign, duration: 0.38, ease: 'power3.inOut' }, '-=0.08')
+      .to(layer2, { xPercent: 100 * sign, duration: 0.38, ease: 'power3.inOut' }, '-=0.3')
+      .to(layer1, { xPercent: 100 * sign, duration: 0.38, ease: 'power3.inOut' }, '-=0.3')
+      .to(backdrop, { opacity: 0, duration: 0.22, ease: 'power2.in' }, '-=0.2')
   }
 
   // Escape key handler

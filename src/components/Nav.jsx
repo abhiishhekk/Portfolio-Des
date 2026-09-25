@@ -32,22 +32,6 @@ export default function Nav({ theme, toggleTheme }) {
   }, [active])
 
   useEffect(() => {
-    function handleOutsideClick(e) {
-      if (menuRef.current && !menuRef.current.contains(e.target)) {
-        setMobileMenuOpen(false)
-      }
-    }
-    if (mobileMenuOpen) {
-      document.addEventListener('mousedown', handleOutsideClick)
-      document.addEventListener('touchstart', handleOutsideClick)
-    }
-    return () => {
-      document.removeEventListener('mousedown', handleOutsideClick)
-      document.removeEventListener('touchstart', handleOutsideClick)
-    }
-  }, [mobileMenuOpen])
-
-  useEffect(() => {
     const sections = NAV_ITEMS.map(i => ({
       id: i.href.replace('#', ''),
       label: i.label,
@@ -91,11 +75,25 @@ export default function Nav({ theme, toggleTheme }) {
     }
     setActive(item.label)
     setMobileMenuOpen(false)
+    document.body.style.overflow = ''
+
+    const isHome = item.href === '#home' || item.label === 'Home'
+
     if (window.__lenis) {
-      window.__lenis.scrollTo(item.href, { duration: 1.4 })
+      if (isHome) {
+        window.__lenis.scrollTo(0, { duration: 1.2 })
+      } else {
+        window.__lenis.scrollTo(item.href, { duration: 1.4 })
+      }
     } else {
-      const target = document.querySelector(item.href)
-      if (target) target.scrollIntoView({ behavior: 'smooth' })
+      if (isHome) {
+        window.scrollTo({ top: 0, behavior: 'smooth' })
+      } else {
+        const target = document.querySelector(item.href)
+        if (target) {
+          target.scrollIntoView({ behavior: 'smooth' })
+        }
+      }
     }
   }
 
