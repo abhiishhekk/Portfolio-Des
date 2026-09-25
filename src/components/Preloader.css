@@ -5,14 +5,28 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: #0a0a0a;
-  color: #ededed;
+  background-color: var(--bg, #0a0a0a);
+  color: var(--fg, #ededed);
   padding: 24px;
   box-sizing: border-box;
   opacity: 1;
   visibility: visible;
   transition: opacity 0.65s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.65s;
   pointer-events: auto;
+}
+
+.preloader-overlay.theme-light,
+[data-theme="light"] .preloader-overlay,
+.preloader-overlay[data-theme="light"] {
+  background-color: #ffffff;
+  color: #0a0a0a;
+}
+
+.preloader-overlay.theme-dark,
+[data-theme="dark"] .preloader-overlay,
+.preloader-overlay[data-theme="dark"] {
+  background-color: #0a0a0a;
+  color: #ededed;
 }
 
 .preloader-overlay.is-exiting {

@@ -10,10 +10,19 @@ const STEP_LIST = [
   "We are ready, Let's Explore!",
 ];
 
-export default function Preloader({ onExitStart, onComplete }) {
+export default function Preloader({ theme, onExitStart, onComplete }) {
   const [working, setWorking] = useState(true);
   const [steps, setSteps] = useState([]);
   const [isExiting, setIsExiting] = useState(false);
+
+  const currentTheme =
+    theme ||
+    (typeof document !== 'undefined'
+      ? document.documentElement.getAttribute('data-theme')
+      : null) ||
+    (typeof window !== 'undefined' && localStorage.getItem('theme')) ||
+    'dark';
+  const isDark = currentTheme === 'dark';
 
   const startTimeRef = useRef(Date.now());
   const pageLoadedRef = useRef(
@@ -86,7 +95,8 @@ export default function Preloader({ onExitStart, onComplete }) {
 
   return (
     <div
-      className={`preloader-overlay ${isExiting ? 'is-exiting' : ''}`}
+      className={`preloader-overlay ${isDark ? 'theme-dark' : 'theme-light'} ${isExiting ? 'is-exiting' : ''}`}
+      data-theme={currentTheme}
       aria-label="Loading portfolio"
       role="status"
     >
@@ -104,7 +114,7 @@ export default function Preloader({ onExitStart, onComplete }) {
         collapsible
         collapseOnSettle
         showTimer
-        color="#ededed"
+        color={isDark ? '#ededed' : '#0a0a0a'}
         onSettle={seconds => console.log(`Thought for ${seconds}s`)}
       />
     </div>

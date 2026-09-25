@@ -4,8 +4,14 @@ export function useTheme() {
   const [theme, setTheme] = useState(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('theme')
-      if (saved) return saved
-      return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+      if (saved) {
+        document.documentElement.setAttribute('data-theme', saved)
+        return saved
+      }
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+      const initial = prefersDark ? 'dark' : 'light'
+      document.documentElement.setAttribute('data-theme', initial)
+      return initial
     }
     return 'dark'
   })

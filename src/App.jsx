@@ -23,6 +23,7 @@ export default function App() {
     <>
       {isPreloaderMounted && (
         <Preloader
+          theme={theme}
           onExitStart={() => setIsPageVisible(true)}
           onComplete={() => setIsPreloaderMounted(false)}
         />
