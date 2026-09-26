@@ -104,7 +104,7 @@ export default function Preloader({ theme, onExitStart, onComplete }) {
         working={working}
         steps={steps}
         label="Getting things ready for you..."
-        doneLabel="Messages Over"
+        doneLabel="We are ready!"
         glyph="sparkle"
         fontSize={16}
         breathPeriod={1.6}
