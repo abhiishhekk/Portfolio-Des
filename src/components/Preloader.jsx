@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import ThoughtLine from './ThoughtLine';
+import { lockScroll, unlockScroll } from '../utils/scrollLock';
 import './Preloader.css';
 
 const STEP_LIST = [
@@ -28,11 +29,14 @@ export default function Preloader({ theme, onExitStart, onComplete }) {
   const pageLoadedRef = useRef(
     typeof document !== 'undefined' && document.readyState === 'complete'
   );
+  const onExitStartRef = useRef(onExitStart);
+  onExitStartRef.current = onExitStart;
+  const onCompleteRef = useRef(onComplete);
+  onCompleteRef.current = onComplete;
 
   useEffect(() => {
-    // Lock scroll while preloader is active
-    const originalOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
+    // Lock scroll completely while preloader is active
+    lockScroll({ forceTop: true });
 
     const handleWindowLoad = () => {
       pageLoadedRef.current = true;
@@ -70,12 +74,12 @@ export default function Preloader({ theme, onExitStart, onComplete }) {
 
         // Allow settle animation to complete before initiating page reveal
         settleTimeout = setTimeout(() => {
-          onExitStart?.();
+          onExitStartRef.current?.();
           setIsExiting(true);
-          document.body.style.overflow = originalOverflow;
+          unlockScroll();
 
           finishTimeout = setTimeout(() => {
-            onComplete?.();
+            onCompleteRef.current?.();
           }, 600);
         }, 750);
       }
@@ -89,9 +93,9 @@ export default function Preloader({ theme, onExitStart, onComplete }) {
       clearInterval(interval);
       clearTimeout(settleTimeout);
       clearTimeout(finishTimeout);
-      document.body.style.overflow = originalOverflow;
+      unlockScroll();
     };
-  }, [onExitStart, onComplete]);
+  }, []);
 
   return (
     <div
@@ -99,6 +103,8 @@ export default function Preloader({ theme, onExitStart, onComplete }) {
       data-theme={currentTheme}
       aria-label="Loading portfolio"
       role="status"
+      onTouchMove={e => e.preventDefault()}
+      onWheel={e => e.preventDefault()}
     >
       <ThoughtLine
         working={working}

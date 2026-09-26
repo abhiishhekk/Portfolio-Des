@@ -58,6 +58,7 @@ html {
   -webkit-tap-highlight-color: transparent;
   overflow-x: hidden;
   overflow-y: auto;
+  overscroll-behavior-y: none;
   -webkit-overflow-scrolling: touch;
   touch-action: pan-y;
   scrollbar-width: none !important;
@@ -84,6 +85,11 @@ body {
   -moz-osx-font-smoothing: grayscale;
   -webkit-tap-highlight-color: transparent;
   touch-action: pan-y;
+}
+
+html.scroll-locked,
+body.scroll-locked {
+  overflow: hidden !important;
 }
 
 html.no-theme-transition,

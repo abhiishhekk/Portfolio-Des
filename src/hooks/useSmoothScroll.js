@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import Lenis from 'lenis'
+import { isScrollLocked } from '../utils/scrollLock'
 
 export function useSmoothScroll() {
   useEffect(() => {
@@ -32,6 +33,10 @@ export function useSmoothScroll() {
     })
 
     window.__lenis = lenis
+
+    if (isScrollLocked()) {
+      lenis.stop()
+    }
 
     return () => {
       lenis.destroy()

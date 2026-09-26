@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { motion } from 'motion/react'
 import { Menu, X, Github, Linkedin, Code2, Mail } from 'lucide-react'
 import StaggeredMenu from './StaggeredMenu'
+import { unlockScroll } from '../utils/scrollLock'
 
 const NAV_ITEMS = [
   { label: 'Home', href: '#home' },
@@ -155,7 +156,7 @@ export default function Nav({ theme, toggleTheme, setTheme }) {
     }
     setActive(item.label)
     setMobileMenuOpen(false)
-    document.body.style.overflow = ''
+    unlockScroll()
 
     const isHome = item.href === '#home' || item.label === 'Home'
 

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import gsap from 'gsap'
 import { X, ExternalLink } from 'lucide-react'
+import { lockScroll, unlockScroll } from '../utils/scrollLock'
 import './StaggeredMenu.css'
 
 export default function StaggeredMenu({
@@ -30,6 +31,7 @@ export default function StaggeredMenu({
   const isClosingRef = useRef(false)
   const openTimelineRef = useRef(null)
   const closeTimelineRef = useRef(null)
+  const lockedRef = useRef(false)
 
   // Mount when isOpen becomes true
   useEffect(() => {
@@ -38,12 +40,15 @@ export default function StaggeredMenu({
     }
   }, [isOpen])
 
-  // Clean up timelines on unmount
+  // Clean up timelines and scroll lock on unmount
   useEffect(() => {
     return () => {
       openTimelineRef.current?.kill()
       closeTimelineRef.current?.kill()
-      document.body.style.overflow = ''
+      if (lockedRef.current) {
+        unlockScroll()
+        lockedRef.current = false
+      }
     }
   }, [])
 
@@ -65,7 +70,10 @@ export default function StaggeredMenu({
 
     if (isOpen) {
       isClosingRef.current = false
-      document.body.style.overflow = 'hidden'
+      if (!lockedRef.current) {
+        lockScroll({ allowElement: panelRef.current })
+        lockedRef.current = true
+      }
 
       if (closeTimelineRef.current) {
         closeTimelineRef.current.kill()
@@ -152,7 +160,10 @@ export default function StaggeredMenu({
 
     // If navigation item clicked, trigger scroll navigation immediately
     if (itemToNavigate && onItemClick) {
-      document.body.style.overflow = ''
+      if (lockedRef.current) {
+        unlockScroll()
+        lockedRef.current = false
+      }
       onItemClick(itemToNavigate, event)
     }
 
@@ -181,7 +192,10 @@ export default function StaggeredMenu({
 
     const tl = gsap.timeline({
       onComplete: () => {
-        document.body.style.overflow = ''
+        if (lockedRef.current) {
+          unlockScroll()
+          lockedRef.current = false
+        }
         isClosingRef.current = false
         setMounted(false)
         if (onClose) onClose()
@@ -234,6 +248,8 @@ export default function StaggeredMenu({
         ref={backdropRef}
         className="sm-backdrop"
         onClick={() => handleClose()}
+        onTouchMove={e => e.preventDefault()}
+        onWheel={e => e.preventDefault()}
         aria-hidden="true"
       />
 

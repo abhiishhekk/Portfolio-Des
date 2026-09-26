@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { useTheme } from './hooks/useTheme'
 import { useSmoothScroll } from './hooks/useSmoothScroll'
 import SplashCursor from './components/SplashCursor'
@@ -19,13 +19,16 @@ export default function App() {
   const [isPreloaderMounted, setIsPreloaderMounted] = useState(true)
   const [isPageVisible, setIsPageVisible] = useState(false)
 
+  const handleExitStart = useCallback(() => setIsPageVisible(true), [])
+  const handleComplete = useCallback(() => setIsPreloaderMounted(false), [])
+
   return (
     <>
       {isPreloaderMounted && (
         <Preloader
           theme={theme}
-          onExitStart={() => setIsPageVisible(true)}
-          onComplete={() => setIsPreloaderMounted(false)}
+          onExitStart={handleExitStart}
+          onComplete={handleComplete}
         />
       )}
 
