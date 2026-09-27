@@ -13,6 +13,8 @@ const DEFAULT_STATS = {
   loading: false,
 }
 
+const CACHE_TTL_MS = 60 * 60 * 1000 // 1 hour
+
 export function useLeetCode(username = USERNAME) {
   const [stats, setStats] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -29,6 +31,11 @@ export function useLeetCode(username = USERNAME) {
   })
 
   useEffect(() => {
+    // If stats were cached recently, avoid network overhead on repeated visits
+    if (stats.lastFetched && Date.now() - stats.lastFetched < CACHE_TTL_MS) {
+      return
+    }
+
     let mounted = true
 
     async function fetchStats() {

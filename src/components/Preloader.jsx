@@ -121,7 +121,6 @@ export default function Preloader({ theme, onExitStart, onComplete }) {
         collapseOnSettle
         showTimer
         color={isDark ? '#ededed' : '#0a0a0a'}
-        onSettle={seconds => console.log(`Thought for ${seconds}s`)}
       />
     </div>
   );

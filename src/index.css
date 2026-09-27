@@ -214,9 +214,18 @@ section {
   contain: layout style;
 }
 
+section#projects {
+  contain: none !important;
+  padding-bottom: 0 !important;
+}
+
 @media (max-width: 768px) {
   section {
     padding: 36px 0;
+  }
+  section#projects {
+    contain: none !important;
+    padding-bottom: 0 !important;
   }
 }
 

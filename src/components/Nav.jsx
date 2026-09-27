@@ -129,6 +129,35 @@ export default function Nav({ theme, toggleTheme, setTheme }) {
       label: i.label,
     }))
 
+    // Robust scroll-probe check: determine section spanning the upper-middle viewport
+    const checkActiveSection = () => {
+      const probeY = window.innerHeight * 0.35
+      for (let i = sections.length - 1; i >= 0; i--) {
+        const s = sections[i]
+        const el = document.getElementById(s.id)
+        if (!el) continue
+        const rect = el.getBoundingClientRect()
+        if (rect.top <= probeY && rect.bottom > probeY) {
+          setActive(s.label)
+          return
+        }
+      }
+    }
+
+    const onCustomActive = (e) => {
+      if (e.detail && typeof e.detail === 'string') {
+        setActive(e.detail)
+      }
+    }
+
+    window.addEventListener('portfolio:active-section', onCustomActive)
+    window.addEventListener('scroll', checkActiveSection, { passive: true })
+
+    const lenis = window.__lenis
+    if (lenis && typeof lenis.on === 'function') {
+      lenis.on('scroll', checkActiveSection)
+    }
+
     const observer = new IntersectionObserver(
       entries => {
         entries.forEach(entry => {
@@ -138,7 +167,7 @@ export default function Nav({ theme, toggleTheme, setTheme }) {
           }
         })
       },
-      { rootMargin: '-40% 0px -55% 0px', threshold: 0 }
+      { rootMargin: '-30% 0px -50% 0px', threshold: 0 }
     )
 
     sections.forEach(({ id }) => {
@@ -146,7 +175,17 @@ export default function Nav({ theme, toggleTheme, setTheme }) {
       if (el) observer.observe(el)
     })
 
-    return () => observer.disconnect()
+    // Check once on mount
+    checkActiveSection()
+
+    return () => {
+      window.removeEventListener('portfolio:active-section', onCustomActive)
+      window.removeEventListener('scroll', checkActiveSection)
+      if (lenis && typeof lenis.off === 'function') {
+        lenis.off('scroll', checkActiveSection)
+      }
+      observer.disconnect()
+    }
   }, [])
 
   function handleClick(item, e) {

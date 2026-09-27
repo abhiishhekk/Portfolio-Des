@@ -702,7 +702,10 @@ function SplashCursor({
     let lastUpdateTime = Date.now();
     let colorUpdateTimer = 0.0;
 
+    let idleFrames = 0;
+
     function ensureRunning() {
+      idleFrames = 0;
       if (!animationFrameId.current && isActive && !document.hidden) {
         lastUpdateTime = Date.now();
         animationFrameId.current = requestAnimationFrame(updateFrame);
@@ -720,6 +723,15 @@ function SplashCursor({
       applyInputs();
       step(dt);
       render(null);
+
+      idleFrames++;
+      // After ~180 frames (approx 3s of no pointer movement), fluid dye has fully dissipated.
+      // Pause RAF loop to eliminate idle CPU and GPU usage. It wakes instantly on any mouse/touch move.
+      if (idleFrames > 180) {
+        animationFrameId.current = null;
+        return;
+      }
+
       animationFrameId.current = requestAnimationFrame(updateFrame);
     }
 
@@ -757,6 +769,7 @@ function SplashCursor({
         if (p.moved) {
           p.moved = false;
           splatPointer(p);
+          idleFrames = 0;
         }
       });
     }

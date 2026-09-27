@@ -17,4 +17,16 @@ export default defineConfig({
       },
     },
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'vendor-react': ['react', 'react-dom'],
+          'vendor-gsap': ['gsap'],
+          'vendor-lenis': ['lenis'],
+          'vendor-ogl': ['ogl'],
+        },
+      },
+    },
+  },
 })

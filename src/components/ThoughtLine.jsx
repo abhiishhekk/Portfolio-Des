@@ -1,7 +1,9 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { gsap } from 'gsap';
 import { HugeiconsIcon } from '@hugeicons/react';
-import { ArrowDown01Icon, SparklesIcon, Tick02Icon } from '@hugeicons/core-free-icons';
+import ArrowDown01Icon from '@hugeicons/core-free-icons/ArrowDown01Icon';
+import SparklesIcon from '@hugeicons/core-free-icons/SparklesIcon';
+import Tick02Icon from '@hugeicons/core-free-icons/Tick02Icon';
 import './ThoughtLine.css';
 
 const GLYPH_DONE = 0.55;

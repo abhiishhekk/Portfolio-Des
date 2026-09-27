@@ -89,9 +89,10 @@ export default function StackChips() {
     let cancelled = false
     let cleanup
 
-    ;(async () => {
-      const Matter = await import('matter-js')
-      if (cancelled) return
+    const loadAndRun = () => {
+      ;(async () => {
+        const Matter = await import('matter-js')
+        if (cancelled) return
 
       const { Engine, Runner, World, Bodies, Body, Mouse, MouseConstraint, Events } = Matter
 
@@ -274,9 +275,25 @@ export default function StackChips() {
         Engine.clear(engine)
       }
     })()
+  }
+
+    let nearObserver = null
+    if (resetKey > 0) {
+      loadAndRun()
+    } else {
+      nearObserver = new IntersectionObserver(([entry]) => {
+        if (entry.isIntersecting) {
+          nearObserver?.disconnect()
+          nearObserver = null
+          loadAndRun()
+        }
+      }, { rootMargin: '300px' })
+      nearObserver.observe(container)
+    }
 
     return () => {
       cancelled = true
+      nearObserver?.disconnect()
       cleanup?.()
     }
   }, [resetKey])

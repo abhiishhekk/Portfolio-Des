@@ -16,4 +16,7 @@
 
 .scroll-reveal-text .word {
   display: inline-block;
+  will-change: transform, opacity;
+  transform: translateZ(0);
+  backface-visibility: hidden;
 }
