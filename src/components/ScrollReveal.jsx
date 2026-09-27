@@ -83,16 +83,36 @@ export default function ScrollReveal({
       return
     }
 
+    const isTouch =
+      typeof window !== 'undefined' &&
+      (window.matchMedia('(pointer: coarse)').matches ||
+        window.innerWidth <= 768 ||
+        'ontouchstart' in window)
+
+    // On mobile / touch devices, disable expensive CSS Gaussian blur entirely.
+    // CSS blur on dozens of elements during momentum scrolling overflows mobile GPU VRAM
+    // and causes the browser process to freeze for multiple seconds.
+    const shouldBlur = !isTouch && enableBlur
+
+    // On mobile, avoid rotation to prevent continuous matrix rasterization.
+    const effectiveRotation = isTouch ? 0 : baseRotation
+
+    // On mobile, use a fast, tight scrub (0.15) so animations don't lag behind 800ms
+    // after the user flicks their finger, completely eliminating animation backlogs.
+    const effectiveScrub = isTouch
+      ? (typeof scrub === 'number' ? Math.min(scrub, 0.15) : true)
+      : scrub
+
     const scroller =
       scrollContainerRef && scrollContainerRef.current
         ? scrollContainerRef.current
         : window
 
     const ctx = gsap.context(() => {
-      if (baseRotation !== 0) {
+      if (effectiveRotation !== 0) {
         gsap.fromTo(
           el,
-          { transformOrigin: '0% 50%', rotate: baseRotation },
+          { transformOrigin: '0% 50%', rotate: effectiveRotation },
           {
             ease: 'none',
             rotate: 0,
@@ -101,7 +121,9 @@ export default function ScrollReveal({
               scroller,
               start,
               end: rotationEnd || end,
-              scrub,
+              scrub: effectiveScrub,
+              fastScrollEnd: true,
+              preventOverlaps: true,
             },
           }
         )
@@ -114,15 +136,16 @@ export default function ScrollReveal({
             wordElements,
             {
               opacity: baseOpacity,
-              filter: enableBlur ? `blur(${blurStrength}px)` : 'none',
-              willChange: 'opacity, filter',
+              y: isTouch ? 10 : 0,
+              filter: shouldBlur ? `blur(${blurStrength}px)` : 'none',
             },
             {
               ease: 'power1.out',
               opacity: 1,
-              filter: enableBlur ? 'blur(0px)' : 'none',
+              y: 0,
+              filter: shouldBlur ? 'blur(0px)' : 'none',
               stagger: {
-                each: 0.03,
+                each: isTouch ? 0.015 : 0.03,
                 ease: 'power1.inOut',
               },
               scrollTrigger: {
@@ -130,7 +153,9 @@ export default function ScrollReveal({
                 scroller,
                 start,
                 end: wordAnimationEnd || end,
-                scrub,
+                scrub: effectiveScrub,
+                fastScrollEnd: true,
+                preventOverlaps: true,
               },
             }
           )
@@ -141,19 +166,22 @@ export default function ScrollReveal({
           el,
           {
             opacity: baseOpacity,
-            filter: enableBlur ? `blur(${blurStrength}px)` : 'none',
-            willChange: 'opacity, filter',
+            y: isTouch ? 14 : 0,
+            filter: shouldBlur ? `blur(${blurStrength}px)` : 'none',
           },
           {
             ease: 'power1.out',
             opacity: 1,
-            filter: enableBlur ? 'blur(0px)' : 'none',
+            y: 0,
+            filter: shouldBlur ? 'blur(0px)' : 'none',
             scrollTrigger: {
               trigger: el,
               scroller,
               start,
               end: end || wordAnimationEnd,
-              scrub,
+              scrub: effectiveScrub,
+              fastScrollEnd: true,
+              preventOverlaps: true,
             },
           }
         )

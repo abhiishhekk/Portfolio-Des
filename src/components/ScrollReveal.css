@@ -1,8 +1,6 @@
 .scroll-reveal {
   margin: 0;
   display: block;
-  transform: translateZ(0);
-  backface-visibility: hidden;
 }
 
 .scroll-reveal-text {
@@ -18,7 +16,4 @@
 
 .scroll-reveal-text .word {
   display: inline-block;
-  will-change: opacity, filter;
-  transform: translateZ(0);
-  backface-visibility: hidden;
 }
