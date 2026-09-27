@@ -355,9 +355,6 @@ export default function StaggeredMenu({
             defaultOpen={[0, 1]}
             defaultActive={activeValue}
             onSelect={handleSelect}
-            color="var(--fg)"
-            accentColor="var(--fg)"
-            lineColor="var(--border)"
             width={340}
             rowHeight={44}
             indent={46}

@@ -1,5 +1,4 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { createPortal } from 'react-dom'
 import { Sun, Moon } from 'lucide-react'
 import gsap from 'gsap'
 import './FullPageThemeSlider.css'
@@ -344,7 +343,7 @@ export default function FullPageThemeSlider({ theme = 'dark', setTheme }) {
 
   const isAtLeft = clampedX < winWidth / 2
 
-  const content = (
+  return (
     <>
       {/* Real-time Theme Split Inversion Layer (active while dragging/animating) */}
       {showReveal && (
@@ -419,7 +418,4 @@ export default function FullPageThemeSlider({ theme = 'dark', setTheme }) {
       </div>
     </>
   )
-
-  if (typeof document === 'undefined') return null
-  return createPortal(content, document.body)
 }

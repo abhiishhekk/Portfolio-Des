@@ -1,8 +1,10 @@
 .branched-menu {
   --bm-w: 260px;
-  --bm-ink: #f5f5f5;
-  --bm-accent: #ffffff;
-  --bm-line: rgba(255, 255, 255, 0.18);
+  --bm-ink: var(--fg, #f5f5f5);
+  --bm-accent: var(--fg, #ffffff);
+  --bm-line: var(--border-strong, rgba(255, 255, 255, 0.2));
+  --bm-muted: var(--fg-muted, rgba(255, 255, 255, 0.65));
+  --bm-head: var(--fg, #f5f5f5);
   --bm-font: 15px;
   --bm-row: 40px;
   --bm-indent: 42px;
@@ -10,7 +12,6 @@
   --bm-draw: 400ms;
   --bm-fold: 300ms;
   --bm-ease-out: cubic-bezier(0.23, 1, 0.32, 1);
-  --bm-muted: rgba(255, 255, 255, 0.55);
 
   position: relative;
   display: flex;
@@ -22,6 +23,22 @@
   font-family: inherit;
   font-size: var(--bm-font);
   line-height: 1.2;
+}
+
+[data-theme='light'] .branched-menu {
+  --bm-ink: #0a0a0a !important;
+  --bm-accent: #0a0a0a !important;
+  --bm-line: #d1d5db !important;
+  --bm-muted: #4b5563 !important;
+  --bm-head: #18181b !important;
+}
+
+[data-theme='dark'] .branched-menu {
+  --bm-ink: #f5f5f5 !important;
+  --bm-accent: #ffffff !important;
+  --bm-line: #333338 !important;
+  --bm-muted: #9e9ea6 !important;
+  --bm-head: #e4e4e7 !important;
 }
 
 .branched-menu::before {
@@ -44,7 +61,7 @@
   height: 20px;
   border-radius: 1px;
   background: var(--bm-accent);
-  box-shadow: 0 0 10px var(--bm-accent);
+  box-shadow: 0 0 6px var(--bm-accent);
   opacity: 0;
   transition:
     top 240ms var(--bm-ease-out),
@@ -68,11 +85,11 @@
   padding: 12px 8px 12px 0;
   border: 0;
   background: none;
-  color: var(--bm-muted);
+  color: var(--bm-head);
   font: inherit;
-  font-size: calc(var(--bm-font) + 1px);
-  font-weight: 600;
-  letter-spacing: 0.04em;
+  font-size: calc(var(--bm-font) - 1px);
+  font-weight: 700;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   text-align: left;
   cursor: pointer;
@@ -83,7 +100,7 @@
 
 .branched-menu__section[data-open] .branched-menu__head,
 .branched-menu__head[data-active] {
-  color: var(--bm-ink);
+  color: var(--bm-head);
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -142,7 +159,6 @@
 
 .branched-menu__reach {
   stroke: var(--bm-accent);
-  filter: drop-shadow(0 0 4px var(--bm-accent));
   transition: stroke-dashoffset var(--bm-draw) var(--bm-ease-out);
 }
 
@@ -159,6 +175,7 @@
   color: var(--bm-muted);
   font: inherit;
   font-size: var(--bm-font);
+  font-weight: 500;
   text-align: left;
   cursor: pointer;
   outline: none;

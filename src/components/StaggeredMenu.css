@@ -3,7 +3,7 @@
 .sm-container {
   position: fixed;
   inset: 0;
-  z-index: 99999;
+  z-index: 100050;
   pointer-events: auto;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   color: var(--fg);
