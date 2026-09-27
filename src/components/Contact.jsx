@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react'
-import { motion } from 'motion/react'
 import { Copy, Check, Github, Linkedin, Code2 } from 'lucide-react'
 import FadeContent from './FadeContent'
 import GlowCursor from './GlowCursor'
 import DecryptedText from './DecryptedText'
+import ScrollReveal from './ScrollReveal'
 
 const EMAIL = 'abhishekkr.init@gmail.com'
 
@@ -98,6 +98,7 @@ export default function Contact() {
     <section id="contact" className="contact-section" aria-label="Contact section">
       <div className="container">
         <div className="divider" style={{ marginBottom: '80px' }} />
+
         <FadeContent delay={0} className="contact-card-wrapper">
           <GlowCursor
             className="contact-card"
@@ -148,9 +149,13 @@ export default function Contact() {
               <span className="section-label">Contact</span>
             </FadeContent>
 
-            <FadeContent delay={0.2}>
-              <h2 className="contact-title">Let&apos;s Connect</h2>
-            </FadeContent>
+            <ScrollReveal
+              tag="h2"
+              containerClassName="contact-title"
+              textClassName="contact-title"
+            >
+              Let&apos;s Connect
+            </ScrollReveal>
 
             <FadeContent delay={0.3}>
               <p className="contact-sub">
@@ -161,12 +166,10 @@ export default function Contact() {
             </FadeContent>
 
             <FadeContent delay={0.4}>
-              <motion.button
+              <button
                 className="contact-email-btn"
                 onClick={handleCopy}
                 id="contact-copy-email-btn"
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.97 }}
                 aria-label={copied ? 'Email copied!' : 'Copy email address'}
               >
                 {copied ? (
@@ -187,7 +190,7 @@ export default function Contact() {
                     />
                   </>
                 )}
-              </motion.button>
+              </button>
             </FadeContent>
 
             <FadeContent delay={0.5}>
@@ -199,20 +202,18 @@ export default function Contact() {
             <FadeContent delay={0.55}>
               <div className="contact-socials">
                 {SOCIALS.map(social => (
-                  <motion.a
+                  <a
                     key={social.label}
                     href={social.href}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="social-btn"
                     id={social.id}
-                    whileHover={{ y: -2 }}
-                    transition={{ type: 'spring', stiffness: 400, damping: 25 }}
                     aria-label={`Visit ${social.label} profile`}
                   >
                     <social.icon size={16} aria-hidden="true" />
                     {social.label}
-                  </motion.a>
+                  </a>
                 ))}
               </div>
             </FadeContent>

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { motion, AnimatePresence } from 'motion/react'
+import { gsap } from 'gsap'
 
 export default function RotatingText({
   texts = [],
@@ -10,6 +10,9 @@ export default function RotatingText({
   const [index, setIndex] = useState(0)
   const [widths, setWidths] = useState([])
   const measureRef = useRef(null)
+  const textRef = useRef(null)
+  const indexRef = useRef(index)
+  indexRef.current = index
 
   useEffect(() => {
     function measure() {
@@ -30,8 +33,25 @@ export default function RotatingText({
   }, [texts])
 
   useEffect(() => {
+    if (texts.length <= 1) return
     const t = setInterval(() => {
-      setIndex(i => (i + 1) % texts.length)
+      const el = textRef.current
+      if (!el) return
+      gsap.to(el, {
+        y: '-110%',
+        opacity: 0,
+        duration: 0.3,
+        ease: 'power2.in',
+        onComplete: () => {
+          const next = (indexRef.current + 1) % texts.length
+          setIndex(next)
+          gsap.fromTo(
+            el,
+            { y: '110%', opacity: 0 },
+            { y: '0%', opacity: 1, duration: 0.35, ease: 'power2.out' }
+          )
+        },
+      })
     }, interval)
     return () => clearInterval(t)
   }, [texts.length, interval])
@@ -67,7 +87,7 @@ export default function RotatingText({
         ))}
       </span>
 
-      <motion.span
+      <span
         className={className}
         style={{
           display: 'inline-flex',
@@ -78,41 +98,26 @@ export default function RotatingText({
           verticalAlign: 'middle',
           alignItems: 'center',
           willChange: 'width',
+          width: currentWidth ? `${currentWidth}px` : 'auto',
+          transition: 'width 0.45s cubic-bezier(0.25, 1, 0.5, 1)',
           ...style,
-        }}
-        animate={currentWidth ? { width: currentWidth } : {}}
-        transition={{
-          width: {
-            duration: 0.45,
-            ease: [0.25, 1, 0.5, 1],
-          },
         }}
         aria-live="polite"
         aria-label={texts[index]}
       >
-        <AnimatePresence mode="wait">
-          <motion.span
-            key={index}
-            style={{
-              display: 'inline-block',
-              whiteSpace: 'nowrap',
-              color: 'var(--fg)',
-              fontWeight: 600,
-              lineHeight: 'inherit',
-            }}
-            initial={{ y: '110%', opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: '-110%', opacity: 0 }}
-            transition={{
-              duration: 0.35,
-              ease: [0.25, 1, 0.5, 1],
-            }}
-          >
-            {texts[index]}
-          </motion.span>
-        </AnimatePresence>
-      </motion.span>
+        <span
+          ref={textRef}
+          style={{
+            display: 'inline-block',
+            whiteSpace: 'nowrap',
+            color: 'var(--fg)',
+            fontWeight: 600,
+            lineHeight: 'inherit',
+          }}
+        >
+          {texts[index]}
+        </span>
+      </span>
     </>
   )
 }
-

@@ -1,5 +1,5 @@
 import { MapPin } from 'lucide-react'
-import BlurText from './BlurText'
+import ScrollReveal from './ScrollReveal'
 import FadeContent from './FadeContent'
 import { useLeetCode } from '../hooks/useLeetCode'
 
@@ -22,15 +22,13 @@ export default function About() {
 
         <div className="about-grid">
           <div className="about-content">
-            <FadeContent delay={0.1}>
-              <BlurText
-                text="My Passion for Coding"
-                tag="h2"
-                className="section-title"
-                duration={0.5}
-                delay={60}
-              />
-            </FadeContent>
+            <ScrollReveal
+              tag="h2"
+              containerClassName="section-title"
+              textClassName="section-title"
+            >
+              My Passion for Coding
+            </ScrollReveal>
 
             <FadeContent delay={0.2}>
               <p className="about-bio" style={{ marginTop: '20px' }}>

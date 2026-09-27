@@ -1,57 +1,22 @@
-import { useRef } from 'react'
-import { motion, useInView } from 'motion/react'
+import ScrollReveal from './ScrollReveal'
 
 export default function BlurText({
   text = '',
+  children,
   className = '',
-  delay = 80,
-  duration = 0.55,
   style = {},
-  once = true,
-  tag: Tag = 'p',
+  tag = 'h2',
+  ...props
 }) {
-  const ref = useRef(null)
-  const isInView = useInView(ref, { once, margin: '-20px' })
-  const words = text.split(' ')
-
   return (
-    <Tag
-      ref={ref}
-      className={className}
-      style={{ display: 'flex', flexWrap: 'wrap', gap: '0.25em', ...style }}
-      aria-label={text}
+    <ScrollReveal
+      tag={tag}
+      containerClassName={className}
+      textClassName={className}
+      style={style}
+      {...props}
     >
-      {words.map((word, i) => (
-        <motion.span
-          key={`${word}-${i}`}
-          style={{
-            display: 'inline-block',
-            willChange: isInView ? 'auto' : 'transform, opacity',
-          }}
-          initial={{ opacity: 0, y: 20, filter: 'blur(8px)' }}
-          animate={
-            isInView
-              ? {
-                  opacity: 1,
-                  y: 0,
-                  filter: 'blur(0px)',
-                  transitionEnd: { filter: 'none' },
-                }
-              : {}
-          }
-          transition={{
-            duration,
-            delay: i * (delay / 1000),
-            ease: [0.25, 0.46, 0.45, 0.94],
-          }}
-          onAnimationComplete={() => {
-            // Releases filter compositor layer to free GPU memory
-          }}
-          aria-hidden="true"
-        >
-          {word}
-        </motion.span>
-      ))}
-    </Tag>
+      {text || children}
+    </ScrollReveal>
   )
 }

@@ -7,7 +7,7 @@ export default function DecayCard({
   image,
   alt = '',
   baseFrequency = 0.016,
-  numOctaves = 3,
+  numOctaves = 1,
   seed = 4,
   maxDisplacement = 65,
   movementBound = 18,

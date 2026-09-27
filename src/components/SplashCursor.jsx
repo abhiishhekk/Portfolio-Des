@@ -3,12 +3,12 @@ import { useEffect, useRef } from 'react';
 
 function SplashCursor({
   SIM_RESOLUTION = 128,
-  DYE_RESOLUTION = 1024,
-  CAPTURE_RESOLUTION = 512,
+  DYE_RESOLUTION = 512,
+  CAPTURE_RESOLUTION = 256,
   DENSITY_DISSIPATION = 4,
   VELOCITY_DISSIPATION = 2,
   PRESSURE = 0.1,
-  PRESSURE_ITERATIONS = 14,
+  PRESSURE_ITERATIONS = 8,
   CURL = 3,
   SPLAT_RADIUS = 0.2,
   SPLAT_FORCE = 6000,
@@ -33,6 +33,14 @@ function SplashCursor({
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
+
+    // Disable heavy fluid simulation on touch devices or reduced motion
+    const isTouch = typeof window !== 'undefined' && (
+      window.matchMedia('(pointer: coarse)').matches ||
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches ||
+      window.innerWidth <= 768
+    );
+    if (isTouch) return;
 
     // Track if the effect is still active for cleanup
     let isActive = true;
@@ -692,34 +700,16 @@ function SplashCursor({
     initFramebuffers();
     let lastUpdateTime = Date.now();
     let colorUpdateTimer = 0.0;
-    let lastActiveTime = 0;
-    let isSleeping = true;
 
-    function wakeUp() {
-      lastActiveTime = performance.now();
-      if (isSleeping && isActive && !document.hidden) {
-        isSleeping = false;
+    function ensureRunning() {
+      if (!animationFrameId.current && isActive && !document.hidden) {
         lastUpdateTime = Date.now();
-        if (resizeCanvas()) initFramebuffers();
-        if (!animationFrameId.current) {
-          animationFrameId.current = requestAnimationFrame(updateFrame);
-        }
+        animationFrameId.current = requestAnimationFrame(updateFrame);
       }
     }
 
     function updateFrame() {
       if (!isActive || document.hidden) {
-        animationFrameId.current = null;
-        isSleeping = true;
-        return;
-      }
-      const now = performance.now();
-      const hasPendingInput = pointers.some(p => p.moved || p.down);
-      if (now - lastActiveTime > 2000 && !hasPendingInput) {
-        gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
-        gl.clearColor(0.0, 0.0, 0.0, 0.0);
-        gl.clear(gl.COLOR_BUFFER_BIT);
-        isSleeping = true;
         animationFrameId.current = null;
         return;
       }
@@ -735,7 +725,7 @@ function SplashCursor({
     function calcDeltaTime() {
       let now = Date.now();
       let dt = (now - lastUpdateTime) / 1000;
-      dt = Math.min(dt, 0.016666);
+      dt = Math.min(Math.max(dt, 0.001), 0.033);
       lastUpdateTime = now;
       return dt;
     }
@@ -1030,7 +1020,7 @@ function SplashCursor({
 
     // Named event handlers for proper cleanup
     function handleMouseDown(e) {
-      wakeUp();
+      ensureRunning();
       let pointer = pointers[0];
       let posX = scaleByPixelRatio(e.clientX);
       let posY = scaleByPixelRatio(e.clientY);
@@ -1040,12 +1030,13 @@ function SplashCursor({
 
     let firstMouseMoveHandled = false;
     function handleMouseMove(e) {
-      wakeUp();
+      ensureRunning();
       let pointer = pointers[0];
       let posX = scaleByPixelRatio(e.clientX);
       let posY = scaleByPixelRatio(e.clientY);
       if (!firstMouseMoveHandled) {
         let color = generateColor();
+        updatePointerDownData(pointer, -1, posX, posY);
         updatePointerMoveData(pointer, posX, posY, color);
         firstMouseMoveHandled = true;
       } else {
@@ -1062,7 +1053,7 @@ function SplashCursor({
         updatePointerDownData(pointer, touches[i].identifier, posX, posY);
         clickSplat(pointer);
       }
-      wakeUp();
+      ensureRunning();
     }
 
     function handleTouchMove(e) {
@@ -1073,7 +1064,7 @@ function SplashCursor({
         let posY = scaleByPixelRatio(touches[i].clientY);
         updatePointerMoveData(pointer, posX, posY, pointer.color);
       }
-      wakeUp();
+      ensureRunning();
     }
 
     function handleTouchEnd(e) {
@@ -1090,7 +1081,8 @@ function SplashCursor({
           cancelAnimationFrame(animationFrameId.current);
           animationFrameId.current = null;
         }
-        isSleeping = true;
+      } else {
+        ensureRunning();
       }
     }
 
@@ -1110,12 +1102,12 @@ function SplashCursor({
     window.addEventListener('orientationchange', handleResize);
     document.addEventListener('visibilitychange', handleVisibilityChange);
 
-    // Initial canvas setup without continuously spinning the RAF loop until user interaction
+    // Initial canvas setup and start animation loop immediately
     if (resizeCanvas()) initFramebuffers();
     gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
     gl.clearColor(0.0, 0.0, 0.0, 0.0);
     gl.clear(gl.COLOR_BUFFER_BIT);
-    isSleeping = true;
+    animationFrameId.current = requestAnimationFrame(updateFrame);
 
     // Cleanup function
     return () => {

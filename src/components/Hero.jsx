@@ -1,4 +1,3 @@
-import { motion } from 'motion/react'
 import { ArrowDown, Github } from 'lucide-react'
 import WarpText from './WarpText'
 import RotatingText from './RotatingText'
@@ -52,7 +51,7 @@ export default function Hero() {
             </div>
           </h1>
 
-          <motion.div
+          <div
             className="hero-role-wrapper"
             style={{
               display: 'flex',
@@ -66,32 +65,19 @@ export default function Hero() {
               minHeight: '2rem',
               height: '2rem',
             }}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.5 }}
           >
             <span style={{ whiteSpace: 'nowrap' }}>I&apos;m a</span>
             <RotatingText texts={ROLES} interval={2600} />
-          </motion.div>
+          </div>
 
-          <motion.p
-            className="hero-subtitle"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.65 }}
-          >
+          <p className="hero-subtitle">
             CS undergrad at{' '}
             <strong style={{ color: 'var(--fg)', fontWeight: 600 }}>NIT Allahabad</strong> — solved{' '}
             {leetCode.totalSolved}+ problems on LeetCode, building scalable full-stack apps and competing in
             algorithmic challenges.
-          </motion.p>
+          </p>
 
-          <motion.div
-            className="hero-ctas"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.8 }}
-          >
+          <div className="hero-ctas">
             <button
               className="btn-primary"
               onClick={() => scrollTo('projects')}
@@ -118,18 +104,13 @@ export default function Hero() {
               <Github size={16} />
               GitHub
             </a>
-          </motion.div>
+          </div>
 
-          <motion.div
-            className="hero-scroll-hint"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.6, delay: 1.1 }}
-          >
+          <div className="hero-scroll-hint">
             <span className="scroll-line" aria-hidden="true" />
             Scroll to explore
             <span className="scroll-line" aria-hidden="true" />
-          </motion.div>
+          </div>
         </div>
       </div>
     </section>

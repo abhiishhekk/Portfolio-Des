@@ -1,48 +1,56 @@
-import { useRef, useState } from 'react'
-import { motion, useMotionValue, useTransform, useSpring } from 'motion/react'
+import { useRef, useCallback } from 'react'
 
 export default function TiltCard({ children, className = '', style = {}, intensity = 10 }) {
   const ref = useRef(null)
+  const innerRef = useRef(null)
   const rectRef = useRef(null)
-  const [isHovered, setIsHovered] = useState(false)
-  const x = useMotionValue(0)
-  const y = useMotionValue(0)
+  const rafId = useRef(null)
 
-  const springConfig = { stiffness: 300, damping: 30 }
-  const xSpring = useSpring(x, springConfig)
-  const ySpring = useSpring(y, springConfig)
-
-  const rotateX = useTransform(ySpring, [-0.5, 0.5], [intensity, -intensity])
-  const rotateY = useTransform(xSpring, [-0.5, 0.5], [-intensity, intensity])
-
-  function handleMouseEnter() {
+  const handleMouseEnter = useCallback(() => {
     if (ref.current) {
       rectRef.current = ref.current.getBoundingClientRect()
     }
-    setIsHovered(true)
-  }
-
-  function handleMouseMove(e) {
-    if (!ref.current) return
-    if (!rectRef.current) {
-      rectRef.current = ref.current.getBoundingClientRect()
+    if (innerRef.current) {
+      innerRef.current.style.transition = 'transform 0.1s cubic-bezier(0.25, 1, 0.5, 1)'
+      innerRef.current.style.willChange = 'transform'
     }
-    const rect = rectRef.current
-    const xVal = (e.clientX - rect.left) / rect.width - 0.5
-    const yVal = (e.clientY - rect.top) / rect.height - 0.5
-    x.set(xVal)
-    y.set(yVal)
-  }
+  }, [])
 
-  function handleMouseLeave() {
+  const handleMouseMove = useCallback(
+    e => {
+      if (!ref.current || !innerRef.current) return
+      if (!rectRef.current) {
+        rectRef.current = ref.current.getBoundingClientRect()
+      }
+      const rect = rectRef.current
+      const xVal = (e.clientX - rect.left) / rect.width - 0.5
+      const yVal = (e.clientY - rect.top) / rect.height - 0.5
+
+      if (rafId.current) cancelAnimationFrame(rafId.current)
+      rafId.current = requestAnimationFrame(() => {
+        if (!innerRef.current) return
+        const rotX = -yVal * intensity * 2
+        const rotY = xVal * intensity * 2
+        innerRef.current.style.transform = `rotateX(${rotX.toFixed(2)}deg) rotateY(${rotY.toFixed(2)}deg) translateZ(0)`
+      })
+    },
+    [intensity]
+  )
+
+  const handleMouseLeave = useCallback(() => {
     rectRef.current = null
-    setIsHovered(false)
-    x.set(0)
-    y.set(0)
-  }
+    if (rafId.current) cancelAnimationFrame(rafId.current)
+    if (innerRef.current) {
+      innerRef.current.style.transition = 'transform 0.5s cubic-bezier(0.25, 1, 0.5, 1)'
+      innerRef.current.style.transform = 'rotateX(0deg) rotateY(0deg) translateZ(0)'
+      setTimeout(() => {
+        if (innerRef.current) innerRef.current.style.willChange = 'auto'
+      }, 500)
+    }
+  }, [])
 
   return (
-    <motion.div
+    <div
       ref={ref}
       className={className}
       style={{
@@ -53,16 +61,15 @@ export default function TiltCard({ children, className = '', style = {}, intensi
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
     >
-      <motion.div
+      <div
+        ref={innerRef}
         style={{
-          rotateX,
-          rotateY,
-          transform: 'translateZ(0)',
-          willChange: isHovered ? 'transform' : 'auto',
+          transform: 'rotateX(0deg) rotateY(0deg) translateZ(0)',
+          transformStyle: 'preserve-3d',
         }}
       >
         {children}
-      </motion.div>
-    </motion.div>
+      </div>
+    </div>
   )
 }

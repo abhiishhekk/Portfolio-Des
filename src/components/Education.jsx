@@ -1,5 +1,5 @@
 import FadeContent from './FadeContent'
-import BlurText from './BlurText'
+import ScrollReveal from './ScrollReveal'
 
 const EDUCATION = [
   {
@@ -36,23 +36,24 @@ export default function Education() {
             <span className="section-label">Education</span>
           </FadeContent>
 
-          <FadeContent delay={0.1}>
-            <BlurText
-              text="Academic Background"
-              tag="h2"
-              className="section-title"
-              style={{ justifyContent: 'center' }}
-              duration={0.5}
-              delay={60}
-            />
-          </FadeContent>
+          <ScrollReveal
+            tag="h2"
+            containerClassName="section-title"
+            textClassName="section-title"
+            style={{ textAlign: 'center' }}
+          >
+            Academic Background
+          </ScrollReveal>
 
-          <FadeContent delay={0.2}>
-            <p className="section-desc">
-              My educational journey — from foundational schooling to a Computer Science degree
-              at one of India&apos;s premier technical institutions.
-            </p>
-          </FadeContent>
+          <ScrollReveal
+            tag="p"
+            containerClassName="section-desc"
+            textClassName="section-desc"
+            style={{ textAlign: 'center', margin: '0 auto' }}
+          >
+            My educational journey — from foundational schooling to a Computer Science degree
+            at one of India&apos;s premier technical institutions.
+          </ScrollReveal>
         </div>
 
         <div className="timeline">

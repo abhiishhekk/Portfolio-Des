@@ -38,6 +38,9 @@ export default function ChromaGrid({
     el.style.setProperty('--chroma-ay', `${y}px`)
   }, [])
 
+  const targetPos = useRef({ x: 0, y: 0 })
+  const rafId = useRef(0)
+
   const handleMouseEnter = useCallback(() => {
     if (containerRef.current) {
       rectRef.current = containerRef.current.getBoundingClientRect()
@@ -51,13 +54,13 @@ export default function ChromaGrid({
         rectRef.current = containerRef.current.getBoundingClientRect()
       }
       const rect = rectRef.current
-      const targetX = e.clientX - rect.left
-      const targetY = e.clientY - rect.top
+      targetPos.current.x = e.clientX - rect.left
+      targetPos.current.y = e.clientY - rect.top
 
       if (!isInsideRef.current) {
         isInsideRef.current = true
-        posRef.current = { x: targetX, y: targetY }
-        updateGradients(targetX, targetY)
+        posRef.current = { x: targetPos.current.x, y: targetPos.current.y }
+        updateGradients(posRef.current.x, posRef.current.y)
 
         if (spotlightRef.current) {
           gsap.to(spotlightRef.current, {
@@ -69,16 +72,21 @@ export default function ChromaGrid({
         }
       }
 
-      gsap.to(posRef.current, {
-        x: targetX,
-        y: targetY,
-        duration: damping,
-        ease: ease,
-        overwrite: 'auto',
-        onUpdate: () => {
-          updateGradients(posRef.current.x, posRef.current.y)
-        },
-      })
+      if (!rafId.current) {
+        rafId.current = requestAnimationFrame(() => {
+          rafId.current = 0
+          gsap.to(posRef.current, {
+            x: targetPos.current.x,
+            y: targetPos.current.y,
+            duration: damping,
+            ease: ease,
+            overwrite: 'auto',
+            onUpdate: () => {
+              updateGradients(posRef.current.x, posRef.current.y)
+            },
+          })
+        })
+      }
     },
     [damping, ease, updateGradients]
   )

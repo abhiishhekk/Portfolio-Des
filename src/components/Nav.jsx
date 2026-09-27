@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { motion } from 'motion/react'
 import { Menu, X, Github, Linkedin, Code2, Mail } from 'lucide-react'
 import StaggeredMenu from './StaggeredMenu'
 import { unlockScroll } from '../utils/scrollLock'
@@ -182,18 +181,16 @@ export default function Nav({ theme, toggleTheme, setTheme }) {
     <header className="nav-container" ref={menuRef}>
       <nav className="nav nav-desktop" role="navigation" aria-label="Main navigation">
         <div className="nav-pill" ref={navRef}>
-          <motion.span
+          <span
             className="nav-indicator"
-            animate={{
+            style={{
               left: indicatorStyle.left,
               width: indicatorStyle.width,
               opacity: indicatorStyle.ready && indicatorStyle.width > 0 ? 1 : 0,
+              transition: indicatorStyle.ready
+                ? 'left 0.35s cubic-bezier(0.25, 1, 0.5, 1), width 0.35s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.2s ease'
+                : 'none',
             }}
-            transition={
-              indicatorStyle.ready
-                ? { type: 'spring', stiffness: 380, damping: 36 }
-                : { duration: 0 }
-            }
             aria-hidden="true"
           />
           {NAV_ITEMS.map(item => (
@@ -223,15 +220,15 @@ export default function Nav({ theme, toggleTheme, setTheme }) {
           aria-expanded={mobileMenuOpen}
           id="mobile-menu-toggle-btn"
         >
-          <motion.span
+          <span
             key={mobileMenuOpen ? 'close' : 'menu'}
-            initial={{ opacity: 0, rotate: -45 }}
-            animate={{ opacity: 1, rotate: 0 }}
-            transition={{ duration: 0.2 }}
-            style={{ display: 'flex' }}
+            style={{
+              display: 'flex',
+              transition: 'transform 0.2s ease, opacity 0.2s ease',
+            }}
           >
             {mobileMenuOpen ? <X size={18} /> : <Menu size={18} />}
-          </motion.span>
+          </span>
         </button>
       </div>
 

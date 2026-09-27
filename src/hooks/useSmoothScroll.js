@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import Lenis from 'lenis'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { isScrollLocked } from '../utils/scrollLock'
 
 export function useSmoothScroll() {
@@ -22,7 +23,7 @@ export function useSmoothScroll() {
 
     // Initialize Lenis smooth scroll for desktop mouse wheels and trackpads
     const lenis = new Lenis({
-      lerp: 0.1,
+      lerp: 0.12,
       wheelMultiplier: 1.0,
       gestureOrientation: 'vertical',
       orientation: 'vertical',
@@ -34,11 +35,17 @@ export function useSmoothScroll() {
 
     window.__lenis = lenis
 
+    const onScroll = () => {
+      ScrollTrigger.update()
+    }
+    lenis.on('scroll', onScroll)
+
     if (isScrollLocked()) {
       lenis.stop()
     }
 
     return () => {
+      lenis.off('scroll', onScroll)
       lenis.destroy()
       delete window.__lenis
     }

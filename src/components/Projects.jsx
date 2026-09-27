@@ -1,9 +1,8 @@
 import { ExternalLink } from 'lucide-react'
 import FadeContent from './FadeContent'
 import TiltCard from './TiltCard'
-import BlurText from './BlurText'
+import ScrollReveal from './ScrollReveal'
 import DecayCard from './DecayCard'
-import ChromaGrid from './ChromaGrid'
 
 import urbanResolveImg from '../assets/UrbanResolve.webp'
 import teamSyncImg from '../assets/TeamSync.webp'
@@ -80,29 +79,28 @@ export default function Projects() {
             <span className="section-label">Projects</span>
           </FadeContent>
 
-          <FadeContent delay={0.1}>
-            <BlurText
-              text="Projects I've Worked On"
-              tag="h2"
-              className="section-title"
-              style={{ justifyContent: 'center' }}
-              duration={0.5}
-              delay={60}
-            />
-          </FadeContent>
+          <ScrollReveal
+            tag="h2"
+            containerClassName="section-title"
+            textClassName="section-title"
+            style={{ textAlign: 'center' }}
+          >
+            Projects I&apos;ve Worked On
+          </ScrollReveal>
 
-          <FadeContent delay={0.2}>
-            <p className="section-desc">
-              A selection of personal and academic projects — from full-stack web apps to
-              competitive programming tools.
-            </p>
-          </FadeContent>
+          <ScrollReveal
+            tag="p"
+            containerClassName="section-desc"
+            textClassName="section-desc"
+            style={{ textAlign: 'center', margin: '0 auto' }}
+          >
+            A selection of personal and academic projects — from full-stack web apps to
+            competitive programming tools.
+          </ScrollReveal>
         </div>
-
-        <ChromaGrid radius={350} damping={0.45} fadeOut={0.6}>
-          <div className="projects-grid">
-            {PROJECTS.map((project, i) => (
-              <FadeContent key={project.id} delay={0.1 + i * 0.08}>
+        <div className="projects-grid">
+          {PROJECTS.map((project, i) => (
+            <FadeContent key={project.id} delay={0.1 + i * 0.08}>
                 <TiltCard intensity={6}>
                   <article
                     className="project-card"
@@ -175,7 +173,6 @@ export default function Projects() {
               </FadeContent>
             ))}
           </div>
-        </ChromaGrid>
       </div>
     </section>
   )

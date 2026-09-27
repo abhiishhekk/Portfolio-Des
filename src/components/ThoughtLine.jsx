@@ -1,11 +1,9 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { animate, useReducedMotion } from 'motion/react';
+import { gsap } from 'gsap';
 import { HugeiconsIcon } from '@hugeicons/react';
 import { ArrowDown01Icon, SparklesIcon, Tick02Icon } from '@hugeicons/core-free-icons';
 import './ThoughtLine.css';
 
-const EASE_OUT = [0.23, 1, 0.32, 1];
-const EASE_IN_OUT = [0.77, 0, 0.175, 1];
 const GLYPH_DONE = 0.55;
 const EMPTY_STEPS = [];
 
@@ -14,6 +12,20 @@ const spoken = ds =>
   ds < 600
     ? `${(ds / 10).toFixed(1)} seconds`
     : `${Math.floor(ds / 600)} minutes ${((ds % 600) / 10).toFixed(1)} seconds`;
+
+function useReducedMotion() {
+  const [reduce, setReduce] = useState(() =>
+    typeof window !== 'undefined' ? window.matchMedia('(prefers-reduced-motion: reduce)').matches : false
+  );
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const handler = e => setReduce(e.matches);
+    mq.addEventListener?.('change', handler);
+    return () => mq.removeEventListener?.('change', handler);
+  }, []);
+  return reduce;
+}
 
 export default function ThoughtLine({
   label = 'Thinking…',
@@ -77,35 +89,49 @@ export default function ThoughtLine({
     const breathEl = breathRef.current;
     if (!breathEl) return undefined;
     const s = settleDuration / 1000;
-    const loop = (el, delay) =>
-      animate(el, { opacity: [trough, 1, trough] }, { duration: period, ease: EASE_IN_OUT, repeat: Infinity, delay });
-    let cancelled = false;
     const running = [];
+
+    const loop = (el, delay) => {
+      const tween = gsap.to(el, {
+        opacity: trough,
+        duration: period / 2,
+        yoyo: true,
+        repeat: -1,
+        ease: 'power2.inOut',
+        delay,
+      });
+      running.push(tween);
+      return tween;
+    };
+
     if (isWorking) {
       if (depth > 0) {
-        if (sheen) running.push(animate(breathEl, { opacity: 1 }, { duration: 0.2, ease: EASE_OUT }));
+        if (sheen) running.push(gsap.to(breathEl, { opacity: 1, duration: 0.2, ease: 'power2.out' }));
         if (glyphEl) {
-          const lead = animate(glyphEl, { opacity: trough }, { duration: 0.2, ease: EASE_OUT });
-          running.push(lead);
-          lead.then(() => {
-            if (cancelled) return;
-            running.push(loop(glyphEl, 0));
-            if (!sheen) running.push(loop(breathEl, 0.14));
+          const lead = gsap.to(glyphEl, {
+            opacity: trough,
+            duration: 0.2,
+            ease: 'power2.out',
+            onComplete: () => {
+              loop(glyphEl, 0);
+              if (!sheen) loop(breathEl, 0.14);
+            },
           });
+          running.push(lead);
         } else if (!sheen) {
-          running.push(loop(breathEl, 0.14));
+          loop(breathEl, 0.14);
         }
       } else {
-        if (glyphEl) running.push(animate(glyphEl, { opacity: 1 }, { duration: 0.2, ease: EASE_OUT }));
-        running.push(animate(breathEl, { opacity: 1 }, { duration: 0.2, ease: EASE_OUT }));
+        if (glyphEl) running.push(gsap.to(glyphEl, { opacity: 1, duration: 0.2, ease: 'power2.out' }));
+        running.push(gsap.to(breathEl, { opacity: 1, duration: 0.2, ease: 'power2.out' }));
       }
     } else {
-      if (glyphEl) running.push(animate(glyphEl, { opacity: GLYPH_DONE }, { duration: s, ease: EASE_OUT }));
-      running.push(animate(breathEl, { opacity: 1 }, { duration: s, ease: EASE_OUT }));
+      if (glyphEl) running.push(gsap.to(glyphEl, { opacity: GLYPH_DONE, duration: s, ease: 'power2.out' }));
+      running.push(gsap.to(breathEl, { opacity: 1, duration: s, ease: 'power2.out' }));
     }
+
     return () => {
-      cancelled = true;
-      running.forEach(a => a.stop());
+      running.forEach(t => t?.kill?.());
     };
   }, [isWorking, period, depth, trough, settleDuration, glyph, sheen]);
 

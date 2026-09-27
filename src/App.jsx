@@ -13,14 +13,22 @@ import Footer from './components/Footer'
 import FullPageThemeSlider from './components/FullPageThemeSlider'
 import Preloader from './components/Preloader'
 
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
+
 export default function App() {
   const { theme, toggle, setTheme } = useTheme()
   useSmoothScroll()
   const [isPreloaderMounted, setIsPreloaderMounted] = useState(true)
   const [isPageVisible, setIsPageVisible] = useState(false)
 
-  const handleExitStart = useCallback(() => setIsPageVisible(true), [])
-  const handleComplete = useCallback(() => setIsPreloaderMounted(false), [])
+  const handleExitStart = useCallback(() => {
+    setIsPageVisible(true)
+    setTimeout(() => ScrollTrigger.refresh(), 100)
+  }, [])
+  const handleComplete = useCallback(() => {
+    setIsPreloaderMounted(false)
+    setTimeout(() => ScrollTrigger.refresh(), 150)
+  }, [])
 
   return (
     <>

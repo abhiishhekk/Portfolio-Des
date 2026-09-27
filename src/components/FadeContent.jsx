@@ -1,50 +1,31 @@
-import { useRef } from 'react'
-import { motion, useInView } from 'motion/react'
+import ScrollReveal from './ScrollReveal'
 
 export default function FadeContent({
   children,
   className = '',
   style = {},
-  delay = 0,
-  duration = 0.55,
-  direction = 'up',
-  once = true,
-  blur = false,
-  threshold = 0.1,
+  blur = true,
+  blurStrength = 4,
+  baseOpacity = 0.2,
+  start = 'top 92%',
+  end = 'bottom 68%',
+  scrub = 0.8,
+  tag = 'div',
 }) {
-  const ref = useRef(null)
-  const isInView = useInView(ref, { once, amount: threshold })
-
-  const variants = {
-    hidden: {
-      opacity: 0,
-      y: direction === 'up' ? 32 : direction === 'down' ? -32 : 0,
-      x: direction === 'left' ? 32 : direction === 'right' ? -32 : 0,
-      filter: blur ? 'blur(8px)' : undefined,
-    },
-    visible: {
-      opacity: 1,
-      y: 0,
-      x: 0,
-      filter: blur ? 'blur(0px)' : undefined,
-    },
-  }
-
   return (
-    <motion.div
-      ref={ref}
-      className={className}
+    <ScrollReveal
+      tag={tag}
+      containerClassName={className}
       style={style}
-      variants={variants}
-      initial="hidden"
-      animate={isInView ? 'visible' : 'hidden'}
-      transition={{
-        duration,
-        delay,
-        ease: [0.25, 0.46, 0.45, 0.94],
-      }}
+      enableBlur={blur}
+      blurStrength={blurStrength}
+      baseOpacity={baseOpacity}
+      baseRotation={0}
+      start={start}
+      end={end}
+      scrub={scrub}
     >
       {children}
-    </motion.div>
+    </ScrollReveal>
   )
 }
