@@ -1,7 +1,19 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useMemo } from 'react'
 import { createPortal } from 'react-dom'
 import gsap from 'gsap'
-import { X, ExternalLink } from 'lucide-react'
+import {
+  X,
+  Home,
+  User,
+  Code2,
+  Briefcase,
+  GraduationCap,
+  Mail,
+  Github,
+  Linkedin,
+  Terminal,
+} from 'lucide-react'
+import BranchedMenu from './BranchedMenu'
 import { lockScroll, unlockScroll } from '../utils/scrollLock'
 import './StaggeredMenu.css'
 
@@ -11,11 +23,8 @@ export default function StaggeredMenu({
   items = [],
   activeItem = '',
   onItemClick,
-  socialItems = [],
   colors = ['#262626', '#141414', '#0a0a0a'],
   position = 'right',
-  displayItemNumbering = true,
-  displaySocials = true,
 }) {
   const containerRef = useRef(null)
   const backdropRef = useRef(null)
@@ -23,15 +32,69 @@ export default function StaggeredMenu({
   const layer2Ref = useRef(null)
   const panelRef = useRef(null)
   const headerRef = useRef(null)
-  const itemsRef = useRef([])
-  const footerRef = useRef(null)
-  const socialsRef = useRef([])
+  const menuBodyRef = useRef(null)
 
   const [mounted, setMounted] = useState(false)
   const isClosingRef = useRef(false)
   const openTimelineRef = useRef(null)
   const closeTimelineRef = useRef(null)
   const lockedRef = useRef(false)
+
+  // Map items to BranchedMenu structure
+  const branchedItems = useMemo(
+    () => [
+      {
+        label: 'Navigation',
+        children: [
+          { label: 'Home', value: '#home', href: '#home', icon: Home },
+          { label: 'About', value: '#about', href: '#about', icon: User },
+          { label: 'Skills', value: '#skills', href: '#skills', icon: Code2 },
+          { label: 'Projects', value: '#projects', href: '#projects', icon: Briefcase },
+          { label: 'Education', value: '#education', href: '#education', icon: GraduationCap },
+          { label: 'Contact', value: '#contact', href: '#contact', icon: Mail },
+        ],
+      },
+      {
+        label: 'Connect & Socials',
+        children: [
+          {
+            label: 'GitHub',
+            value: 'https://github.com/abhiishhekk',
+            href: 'https://github.com/abhiishhekk',
+            icon: Github,
+            isExternal: true,
+          },
+          {
+            label: 'LinkedIn',
+            value: 'https://www.linkedin.com/in/abhishek-kumar-init/',
+            href: 'https://www.linkedin.com/in/abhishek-kumar-init/',
+            icon: Linkedin,
+            isExternal: true,
+          },
+          {
+            label: 'LeetCode',
+            value: 'https://leetcode.com/u/abhiishhek_k/',
+            href: 'https://leetcode.com/u/abhiishhek_k/',
+            icon: Terminal,
+            isExternal: true,
+          },
+          {
+            label: 'Email',
+            value: 'mailto:abhishekkr.init@gmail.com',
+            href: 'mailto:abhishekkr.init@gmail.com',
+            icon: Mail,
+            isExternal: true,
+          },
+        ],
+      },
+    ],
+    []
+  )
+
+  const activeValue = useMemo(() => {
+    const found = items.find(i => i.label.toLowerCase() === activeItem.toLowerCase())
+    return found ? found.href : '#home'
+  }, [items, activeItem])
 
   // Mount when isOpen becomes true
   useEffect(() => {
@@ -62,9 +125,7 @@ export default function StaggeredMenu({
     const layer2 = layer2Ref.current
     const panel = panelRef.current
     const header = headerRef.current
-    const itemEls = itemsRef.current.filter(Boolean)
-    const footer = footerRef.current
-    const socialEls = socialsRef.current.filter(Boolean)
+    const menuBody = menuBodyRef.current
 
     const sign = position === 'right' ? 1 : -1
 
@@ -87,9 +148,7 @@ export default function StaggeredMenu({
       gsap.set(backdrop, { opacity: 0 })
       gsap.set([layer1, layer2, panel], { xPercent: 100 * sign })
       gsap.set(header, { opacity: 0, y: -16 })
-      gsap.set(itemEls, { opacity: 0, y: 36, skewX: -2 * sign })
-      if (footer) gsap.set(footer, { opacity: 0 })
-      if (socialEls.length) gsap.set(socialEls, { opacity: 0, y: 16 })
+      if (menuBody) gsap.set(menuBody, { opacity: 0, y: 24 })
 
       // Animate in sequence
       tl.to(backdrop, { opacity: 1, duration: 0.35, ease: 'power2.out' })
@@ -121,31 +180,15 @@ export default function StaggeredMenu({
           '-=0.42'
         )
         .to(header, { opacity: 1, y: 0, duration: 0.3, ease: 'power2.out' }, '-=0.25')
-        .to(
-          itemEls,
-          {
-            opacity: 1,
-            y: 0,
-            skewX: 0,
-            duration: 0.45,
-            stagger: 0.05,
-            ease: 'power3.out',
-          },
-          '-=0.2'
-        )
 
-      if (footer) {
-        tl.to(footer, { opacity: 1, duration: 0.3 }, '-=0.25')
-      }
-      if (socialEls.length) {
+      if (menuBody) {
         tl.to(
-          socialEls,
+          menuBody,
           {
             opacity: 1,
             y: 0,
-            duration: 0.35,
-            stagger: 0.035,
-            ease: 'power2.out',
+            duration: 0.42,
+            ease: 'power3.out',
           },
           '-=0.2'
         )
@@ -177,7 +220,7 @@ export default function StaggeredMenu({
       panelRef.current,
       backdropRef.current,
       headerRef.current,
-      ...itemsRef.current,
+      menuBodyRef.current,
     ])
 
     const container = containerRef.current
@@ -186,7 +229,7 @@ export default function StaggeredMenu({
     const layer2 = layer2Ref.current
     const panel = panelRef.current
     const header = headerRef.current
-    const itemEls = itemsRef.current.filter(Boolean)
+    const menuBody = menuBodyRef.current
 
     const sign = position === 'right' ? 1 : -1
 
@@ -203,14 +246,14 @@ export default function StaggeredMenu({
     })
     closeTimelineRef.current = tl
 
-    // Items stagger out
-    tl.to(itemEls, {
-      opacity: 0,
-      y: -16,
-      duration: 0.2,
-      stagger: 0.02,
-      ease: 'power2.in',
-    })
+    if (menuBody) {
+      tl.to(menuBody, {
+        opacity: 0,
+        y: -14,
+        duration: 0.2,
+        ease: 'power2.in',
+      })
+    }
 
     if (header) {
       tl.to(header, { opacity: 0, duration: 0.18 }, '<')
@@ -220,6 +263,20 @@ export default function StaggeredMenu({
       .to(layer2, { xPercent: 100 * sign, duration: 0.38, ease: 'power3.inOut' }, '-=0.3')
       .to(layer1, { xPercent: 100 * sign, duration: 0.38, ease: 'power3.inOut' }, '-=0.3')
       .to(backdrop, { opacity: 0, duration: 0.22, ease: 'power2.in' }, '-=0.2')
+  }
+
+  const handleSelect = (val, item) => {
+    if (item.isExternal) {
+      window.open(item.value, '_blank', 'noopener,noreferrer')
+      handleClose()
+      return
+    }
+
+    const navItem = items.find(
+      i => i.href === item.value || i.label.toLowerCase() === item.label.toLowerCase()
+    ) || { label: item.label, href: item.value }
+
+    handleClose(navItem)
   }
 
   // Escape key handler
@@ -281,11 +338,6 @@ export default function StaggeredMenu({
       >
         {/* Header */}
         <div ref={headerRef} className="sm-header">
-          <div className="sm-brand">
-            <span className="sm-brand-dot" aria-hidden="true" />
-            <span className="sm-brand-title">Navigation</span>
-          </div>
-
           <button
             className="sm-close-btn"
             onClick={() => handleClose()}
@@ -296,40 +348,25 @@ export default function StaggeredMenu({
           </button>
         </div>
 
-        {/* Menu Items */}
-        <nav className="sm-nav" aria-label="Mobile navigation links">
-          {items.map((item, index) => {
-            const isActive = activeItem === item.label
-            const numStr = String(index + 1).padStart(2, '0')
-
-            return (
-              <a
-                key={item.label}
-                ref={el => {
-                  itemsRef.current[index] = el
-                }}
-                href={item.href}
-                className={`sm-item ${isActive ? 'active' : ''}`}
-                onClick={e => {
-                  e.preventDefault()
-                  handleClose(item, e)
-                }}
-                aria-current={isActive ? 'page' : undefined}
-              >
-                <div className="sm-item-content">
-                  {displayItemNumbering && (
-                    <span className="sm-item-num">{numStr}</span>
-                  )}
-                  <span className="sm-item-label">{item.label}</span>
-                </div>
-
-                {isActive && (
-                  <span className="sm-item-active-dot" aria-hidden="true" />
-                )}
-              </a>
-            )
-          })}
-        </nav>
+        {/* Branched Menu */}
+        <div ref={menuBodyRef} className="sm-branched-wrapper">
+          <BranchedMenu
+            items={branchedItems}
+            defaultOpen={[0, 1]}
+            defaultActive={activeValue}
+            onSelect={handleSelect}
+            color="var(--fg)"
+            accentColor="var(--fg)"
+            lineColor="var(--border)"
+            width={340}
+            rowHeight={44}
+            indent={46}
+            trunk={16}
+            radius={12}
+            lineWidth={1.6}
+            fontSize={15}
+          />
+        </div>
       </div>
     </div>,
     document.body

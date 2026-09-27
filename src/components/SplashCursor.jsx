@@ -34,13 +34,14 @@ function SplashCursor({
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    // Disable heavy fluid simulation on touch devices or reduced motion
-    const isTouch = typeof window !== 'undefined' && (
+    // Only disable if user explicitly requested reduced motion in system settings
+    const prefersReducedMotion = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (prefersReducedMotion) return;
+
+    const isMobile = typeof window !== 'undefined' && (
       window.matchMedia('(pointer: coarse)').matches ||
-      window.matchMedia('(prefers-reduced-motion: reduce)').matches ||
       window.innerWidth <= 768
     );
-    if (isTouch) return;
 
     // Track if the effect is still active for cleanup
     let isActive = true;
@@ -59,17 +60,17 @@ function SplashCursor({
     }
 
     let config = {
-      SIM_RESOLUTION,
-      DYE_RESOLUTION,
+      SIM_RESOLUTION: isMobile ? Math.min(SIM_RESOLUTION, 64) : SIM_RESOLUTION,
+      DYE_RESOLUTION: isMobile ? Math.min(DYE_RESOLUTION, 256) : DYE_RESOLUTION,
       CAPTURE_RESOLUTION,
       DENSITY_DISSIPATION,
       VELOCITY_DISSIPATION,
       PRESSURE,
-      PRESSURE_ITERATIONS,
+      PRESSURE_ITERATIONS: isMobile ? Math.min(PRESSURE_ITERATIONS, 4) : PRESSURE_ITERATIONS,
       CURL,
-      SPLAT_RADIUS,
+      SPLAT_RADIUS: isMobile ? Math.max(SPLAT_RADIUS, 0.35) : SPLAT_RADIUS,
       SPLAT_FORCE,
-      SHADING,
+      SHADING: isMobile ? false : SHADING,
       COLOR_UPDATE_SPEED,
       PAUSED: false,
       BACK_COLOR,
@@ -1062,6 +1063,9 @@ function SplashCursor({
       for (let i = 0; i < touches.length; i++) {
         let posX = scaleByPixelRatio(touches[i].clientX);
         let posY = scaleByPixelRatio(touches[i].clientY);
+        if (!pointer.color || (pointer.color.r === 0 && pointer.color.g === 0 && pointer.color.b === 0)) {
+          pointer.color = generateColor();
+        }
         updatePointerMoveData(pointer, posX, posY, pointer.color);
       }
       ensureRunning();
