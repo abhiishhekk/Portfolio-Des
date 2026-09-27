@@ -97,6 +97,13 @@ export default function ScrollReveal({
     // On mobile, avoid rotation to prevent continuous matrix rasterization.
     const effectiveRotation = isTouch ? 0 : baseRotation
 
+    // On mobile, trigger earlier and complete earlier (in the lower third of the screen)
+    // so content never appears late or delayed to the user.
+    const effectiveStart = isTouch ? 'top 98%' : start
+    const effectiveEnd = isTouch ? 'top 72%' : (end || wordAnimationEnd)
+    const effectiveWordEnd = isTouch ? 'top 72%' : (wordAnimationEnd || end)
+    const effectiveBaseOpacity = isTouch ? Math.max(baseOpacity, 0.4) : baseOpacity
+
     // On mobile, use a fast, tight scrub (0.15) so animations don't lag behind 800ms
     // after the user flicks their finger, completely eliminating animation backlogs.
     const effectiveScrub = isTouch
@@ -119,8 +126,8 @@ export default function ScrollReveal({
             scrollTrigger: {
               trigger: el,
               scroller,
-              start,
-              end: rotationEnd || end,
+              start: effectiveStart,
+              end: rotationEnd || effectiveEnd,
               scrub: effectiveScrub,
               fastScrollEnd: true,
               preventOverlaps: true,
@@ -135,8 +142,8 @@ export default function ScrollReveal({
           gsap.fromTo(
             wordElements,
             {
-              opacity: baseOpacity,
-              y: isTouch ? 10 : 0,
+              opacity: effectiveBaseOpacity,
+              y: isTouch ? 8 : 0,
               filter: shouldBlur ? `blur(${blurStrength}px)` : 'none',
             },
             {
@@ -151,8 +158,8 @@ export default function ScrollReveal({
               scrollTrigger: {
                 trigger: el,
                 scroller,
-                start,
-                end: wordAnimationEnd || end,
+                start: effectiveStart,
+                end: effectiveWordEnd,
                 scrub: effectiveScrub,
                 fastScrollEnd: true,
                 preventOverlaps: true,
@@ -165,8 +172,8 @@ export default function ScrollReveal({
         gsap.fromTo(
           el,
           {
-            opacity: baseOpacity,
-            y: isTouch ? 14 : 0,
+            opacity: effectiveBaseOpacity,
+            y: isTouch ? 12 : 0,
             filter: shouldBlur ? `blur(${blurStrength}px)` : 'none',
           },
           {
@@ -177,8 +184,8 @@ export default function ScrollReveal({
             scrollTrigger: {
               trigger: el,
               scroller,
-              start,
-              end: end || wordAnimationEnd,
+              start: effectiveStart,
+              end: effectiveEnd,
               scrub: effectiveScrub,
               fastScrollEnd: true,
               preventOverlaps: true,
