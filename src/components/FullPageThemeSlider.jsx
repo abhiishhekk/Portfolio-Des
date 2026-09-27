@@ -22,6 +22,104 @@ export default function FullPageThemeSlider({ theme = 'dark', setTheme }) {
   const transitionFromThemeRef = useRef(theme)
   const rafIdRef = useRef(null)
 
+  // Icon transition refs
+  const iconWrapperRef = useRef(null)
+  const sunIconRef = useRef(null)
+  const moonIconRef = useRef(null)
+  const prevThemeRef = useRef(theme)
+  const isFirstRender = useRef(true)
+
+  // Smooth rotational & scale morphing transition for Sun/Moon icons on theme change
+  useEffect(() => {
+    const sun = sunIconRef.current
+    const moon = moonIconRef.current
+    const wrapper = iconWrapperRef.current
+
+    if (!sun || !moon) return
+
+    if (isFirstRender.current) {
+      isFirstRender.current = false
+      prevThemeRef.current = theme
+      if (theme === 'dark') {
+        gsap.set(sun, { opacity: 1, scale: 1, rotate: 0 })
+        gsap.set(moon, { opacity: 0, scale: 0.35, rotate: 90 })
+      } else {
+        gsap.set(moon, { opacity: 1, scale: 1, rotate: 0 })
+        gsap.set(sun, { opacity: 0, scale: 0.35, rotate: -90 })
+      }
+      return
+    }
+
+    if (prevThemeRef.current === theme) return
+    prevThemeRef.current = theme
+
+    gsap.killTweensOf([sun, moon, wrapper])
+
+    if (theme === 'dark') {
+      // Transition from Moon to Sun
+      gsap.to(moon, {
+        opacity: 0,
+        scale: 0.25,
+        rotate: 90,
+        duration: 0.38,
+        ease: 'power2.inOut',
+      })
+      gsap.fromTo(
+        sun,
+        { opacity: 0, scale: 0.25, rotate: -90 },
+        {
+          opacity: 1,
+          scale: 1,
+          rotate: 0,
+          duration: 0.5,
+          ease: 'back.out(1.85)',
+        }
+      )
+      if (wrapper) {
+        gsap.fromTo(
+          wrapper,
+          { rotate: -25 },
+          { rotate: 0, duration: 0.45, ease: 'power3.out' }
+        )
+      }
+    } else {
+      // Transition from Sun to Moon
+      gsap.to(sun, {
+        opacity: 0,
+        scale: 0.25,
+        rotate: -90,
+        duration: 0.38,
+        ease: 'power2.inOut',
+      })
+      gsap.fromTo(
+        moon,
+        { opacity: 0, scale: 0.25, rotate: 90 },
+        {
+          opacity: 1,
+          scale: 1,
+          rotate: 0,
+          duration: 0.5,
+          ease: 'back.out(1.85)',
+        }
+      )
+      if (wrapper) {
+        gsap.fromTo(
+          wrapper,
+          { rotate: 25 },
+          { rotate: 0, duration: 0.45, ease: 'power3.out' }
+        )
+      }
+    }
+  }, [theme])
+
+  useEffect(() => {
+    return () => {
+      if (sunIconRef.current) gsap.killTweensOf(sunIconRef.current)
+      if (moonIconRef.current) gsap.killTweensOf(moonIconRef.current)
+      if (iconWrapperRef.current) gsap.killTweensOf(iconWrapperRef.current)
+    }
+  }, [])
+
   // Keep transition origin ref aligned when theme changes outside the slider
   useEffect(() => {
     transitionFromThemeRef.current = theme
@@ -397,13 +495,16 @@ export default function FullPageThemeSlider({ theme = 'dark', setTheme }) {
         }}
       >
         <div className="fullpage-slider-handle-content">
-          {/* Theme-based icon: Moon in Light Mode, Sun in Dark Mode */}
+          {/* Smooth Morphing Theme Icons: Sun & Moon */}
           <span className="fullpage-slider-grip" aria-hidden="true">
-            {isDark ? (
-              <Sun size={18} strokeWidth={2.2} />
-            ) : (
-              <Moon size={18} strokeWidth={2.2} />
-            )}
+            <span ref={iconWrapperRef} className="fullpage-slider-icons-wrapper">
+              <span ref={sunIconRef} className="fullpage-slider-icon icon-sun">
+                <Sun size={18} strokeWidth={2.2} />
+              </span>
+              <span ref={moonIconRef} className="fullpage-slider-icon icon-moon">
+                <Moon size={18} strokeWidth={2.2} />
+              </span>
+            </span>
           </span>
 
           {/* Interactive Tooltip Badge (without shadow) */}

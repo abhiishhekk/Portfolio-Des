@@ -120,6 +120,42 @@
   transition: transform 0.2s ease;
 }
 
+.fullpage-slider-icons-wrapper {
+  position: relative;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  will-change: transform;
+}
+
+.fullpage-slider-icon {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--fg);
+  will-change: transform, opacity;
+  pointer-events: none;
+}
+
+[data-theme='dark'] .fullpage-slider-icon.icon-sun {
+  opacity: 1;
+}
+[data-theme='dark'] .fullpage-slider-icon.icon-moon {
+  opacity: 0;
+  transform: rotate(90deg) scale(0.35);
+}
+[data-theme='light'] .fullpage-slider-icon.icon-moon {
+  opacity: 1;
+}
+[data-theme='light'] .fullpage-slider-icon.icon-sun {
+  opacity: 0;
+  transform: rotate(-90deg) scale(0.35);
+}
+
 /* Interactive Floating Tooltip Badge */
 .fullpage-slider-tooltip {
   position: absolute;
