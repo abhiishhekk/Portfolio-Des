@@ -109,7 +109,7 @@ export default function Preloader({ theme, onExitStart, onComplete }) {
       <ThoughtLine
         working={working}
         steps={steps}
-        label="Getting things ready for you..."
+        label="Getting the webpage ready..."
         doneLabel="We are ready!"
         glyph="sparkle"
         fontSize={16}
