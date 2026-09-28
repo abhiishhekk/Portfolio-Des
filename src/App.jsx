@@ -15,6 +15,8 @@ import Preloader from './components/Preloader'
 
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 
+ScrollTrigger.config({ ignoreMobileResize: true })
+
 export default function App() {
   const { theme, toggle, setTheme } = useTheme()
   useSmoothScroll()

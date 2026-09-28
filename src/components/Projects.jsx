@@ -11,6 +11,7 @@ import plantDiseaseImg from '../assets/PlantDiseaseDetection.webp'
 import procTraceImg from '../assets/ProcTrace.webp'
 
 gsap.registerPlugin(ScrollTrigger)
+ScrollTrigger.config({ ignoreMobileResize: true })
 
 const PROJECTS = [
   {
@@ -230,9 +231,13 @@ export default function Projects() {
       })
     }
 
+    // Stable viewport height cache: prevents mobile address bar expand/collapse from altering scroll runway length
+    let stableViewportHeight = window.innerHeight
+    let lastWindowWidth = window.innerWidth
+
     const ctx = gsap.context(() => {
       // 3.6 viewports of pinned scroll distance: perfectly balanced runway for 4 showcase items
-      const scrollDistance = () => window.innerHeight * 3.6
+      const scrollDistance = () => stableViewportHeight * 3.6
 
       triggerRef.current = ScrollTrigger.create({
         trigger: pinWrapper,
@@ -242,8 +247,8 @@ export default function Projects() {
         pinSpacing: true,
         refreshPriority: 1, // CRITICAL: Higher priority ensures pin spacer is measured before lower sections calculate offsets
         scrub: true,
-        anticipatePin: 1,
-        invalidateOnRefresh: true,
+        anticipatePin: 0,
+        invalidateOnRefresh: false,
         onToggle: (self) => {
           if (self.isActive) {
             window.dispatchEvent(new CustomEvent('portfolio:active-section', { detail: 'Projects' }))
@@ -315,7 +320,14 @@ export default function Projects() {
     stage.addEventListener('touchend', onTouchEnd, { passive: true })
 
     const handleResize = () => {
-      ScrollTrigger.refresh()
+      // Only refresh ScrollTrigger if the window width actually changed (e.g. orientation change or desktop window resize).
+      // Ignore vertical-only mobile browser address bar collapse/expand to prevent sudden height jumps/flickering.
+      if (Math.abs(window.innerWidth - lastWindowWidth) > 10) {
+        lastWindowWidth = window.innerWidth
+        stableViewportHeight = window.innerHeight
+        ScrollTrigger.refresh()
+        window.__lenis?.resize()
+      }
     }
     window.addEventListener('resize', handleResize)
 

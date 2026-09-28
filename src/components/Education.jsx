@@ -29,7 +29,7 @@ export default function Education() {
   return (
     <section id="education" aria-label="Education section">
       <div className="container">
-        <div className="divider" style={{ marginBottom: '100px' }} />
+        <div className="divider" style={{ marginBottom: 'clamp(36px, 6vw, 100px)' }} />
 
         <div className="section-header-center">
           <ScrollReveal

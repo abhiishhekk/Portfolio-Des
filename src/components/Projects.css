@@ -35,11 +35,6 @@
   gap: clamp(16px, 2.2vh, 26px); /* Balanced vertical gap between upper text and project image */
 }
 
-/* Static Section Badge: -- PROJECTS -- */
-/* ==========================================================================
-   Upper Content: Vertical Text Carousel (Title, Description, Tags & Button)
-   ========================================================================== */
-
 .projects-text-stage {
   position: relative;
   z-index: 5;
@@ -288,12 +283,6 @@
   overflow: hidden;
 }
 
-/* ==========================================================================
-   [ | - ] 3-Section Grid Layout (Simple, Aesthetic, Vertically Centered)
-   Left Column: Problem Solved (Spans full height)
-   Right Upper Cell: Intended Users
-   Right Lower Cell: Recruiter Highlights & Key Architecture
-   ========================================================================== */
 
 .project-dossier-grid {
   display: grid;
@@ -380,10 +369,6 @@
   color: var(--fg-subtle, #71717a);
 }
 
-/* ==========================================================================
-   Responsive Adaptations (Smartphones & Small Screens)
-   ========================================================================== */
-
 @media (max-width: 768px) {
   .projects-pinned-stage {
     padding-top: max(72px, env(safe-area-inset-top, 20px) + 52px);
@@ -392,8 +377,7 @@
     padding-right: 14px;
     justify-content: flex-start;
     gap: 6px;
-    height: 100vh;
-    height: 100dvh;
+    height: 100%;
     box-sizing: border-box;
   }
 
