@@ -52,6 +52,8 @@ export default function BranchedMenu({
   const activeSection = items.findIndex(it => it.children?.some(kid => kid.value === active));
   const markerShown = activeSection >= 0 && open.has(activeSection);
 
+  const isInitialMount = useRef(true);
+
   useLayoutEffect(() => {
     const place = glide => {
       const m = markerRef.current;
@@ -66,7 +68,13 @@ export default function BranchedMenu({
         m.style.transition = '';
       }
     };
-    place(true);
+
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      place(false);
+    } else {
+      place(true);
+    }
     let first = true;
     const ro = new ResizeObserver(() => {
       if (first) {

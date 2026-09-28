@@ -142,7 +142,6 @@
 
 .branched-menu__section[data-open] .branched-menu__lines {
   opacity: 1;
-  transition: opacity 250ms ease 100ms;
 }
 
 .branched-menu__base,

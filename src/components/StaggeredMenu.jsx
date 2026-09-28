@@ -143,20 +143,20 @@ export default function StaggeredMenu({
       const tl = gsap.timeline()
       openTimelineRef.current = tl
 
-      // Reset initial styles
+      // Reset initial styles synchronously before any paint
       gsap.set(container, { visibility: 'visible' })
       gsap.set(backdrop, { opacity: 0 })
       gsap.set([layer1, layer2, panel], { xPercent: 100 * sign })
-      gsap.set(header, { opacity: 0, y: -16 })
-      if (menuBody) gsap.set(menuBody, { opacity: 0, y: 24 })
+      gsap.set(header, { opacity: 0, y: -10 })
+      if (menuBody) gsap.set(menuBody, { opacity: 0, y: 10 })
 
-      // Animate in sequence
+      // Animate in sequence: panel reaches its resting position before navigation contents cleanly fade in
       tl.to(backdrop, { opacity: 1, duration: 0.35, ease: 'power2.out' })
         .to(
           layer1,
           {
             xPercent: 0,
-            duration: 0.52,
+            duration: 0.46,
             ease: 'power3.inOut',
           },
           '-=0.25'
@@ -165,21 +165,21 @@ export default function StaggeredMenu({
           layer2,
           {
             xPercent: 0,
-            duration: 0.52,
+            duration: 0.46,
             ease: 'power3.inOut',
           },
-          '-=0.42'
+          '-=0.36'
         )
         .to(
           panel,
           {
             xPercent: 0,
-            duration: 0.52,
+            duration: 0.46,
             ease: 'power3.out',
           },
-          '-=0.42'
+          '-=0.36'
         )
-        .to(header, { opacity: 1, y: 0, duration: 0.3, ease: 'power2.out' }, '-=0.25')
+        .to(header, { opacity: 1, y: 0, duration: 0.22, ease: 'power2.out' }, '-=0.14')
 
       if (menuBody) {
         tl.to(
@@ -187,10 +187,10 @@ export default function StaggeredMenu({
           {
             opacity: 1,
             y: 0,
-            duration: 0.42,
-            ease: 'power3.out',
+            duration: 0.28,
+            ease: 'power2.out',
           },
-          '-=0.2'
+          '-=0.1' // Only reveal as the panel arrives in place to eliminate any premature flicker
         )
       }
     }
