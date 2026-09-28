@@ -20,3 +20,29 @@
   transform: translateZ(0);
   backface-visibility: hidden;
 }
+
+/* ==========================================================================
+   Lightweight Smartphone Scroll Reveal (Zero JS scroll overhead, 120fps)
+   ========================================================================== */
+@media (max-width: 768px), (pointer: coarse) {
+  .scroll-reveal.mobile-reveal {
+    opacity: 0;
+    transform: translateY(14px);
+    transition: opacity 0.45s cubic-bezier(0.16, 1, 0.3, 1),
+                transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+    will-change: opacity, transform;
+  }
+
+  .scroll-reveal.mobile-reveal.is-revealed {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .scroll-reveal.mobile-reveal .word {
+    opacity: 1 !important;
+    filter: none !important;
+    transform: none !important;
+    display: inline !important;
+    will-change: auto !important;
+  }
+}

@@ -24,10 +24,6 @@ export default function Skills() {
         <div className="divider" style={{ marginBottom: '100px' }} />
 
         <div className="section-header-center">
-          <FadeContent delay={0}>
-            <span className="section-label">Skills</span>
-          </FadeContent>
-
           <ScrollReveal
             tag="h2"
             containerClassName="section-title"

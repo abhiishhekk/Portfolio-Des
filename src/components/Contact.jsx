@@ -144,11 +144,7 @@ export default function Contact() {
                 />
               ))}
             </div>
-
-            <FadeContent delay={0.1}>
-              <span className="section-label">Contact</span>
-            </FadeContent>
-
+ 
             <ScrollReveal
               tag="h2"
               containerClassName="contact-title"

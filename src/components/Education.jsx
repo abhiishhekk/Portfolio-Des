@@ -32,10 +32,6 @@ export default function Education() {
         <div className="divider" style={{ marginBottom: '100px' }} />
 
         <div className="section-header-center">
-          <FadeContent delay={0}>
-            <span className="section-label">Education</span>
-          </FadeContent>
-
           <ScrollReveal
             tag="h2"
             containerClassName="section-title"

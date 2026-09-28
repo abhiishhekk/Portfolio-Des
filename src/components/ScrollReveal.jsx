@@ -29,11 +29,11 @@ export default function ScrollReveal({
   blurStrength = 4,
   containerClassName = '',
   textClassName = '',
-  start = 'top 95%',
-  end = 'bottom 88%',
-  rotationEnd = 'bottom 88%',
-  wordAnimationEnd = 'bottom 88%',
-  scrub = 0.8,
+  start = 'top 92%',
+  end = 'top 70%',
+  rotationEnd = 'top 75%',
+  wordAnimationEnd = 'top 70%',
+  scrub = 0.5,
   style = {},
   tag: Tag = 'div',
 }) {
@@ -89,26 +89,34 @@ export default function ScrollReveal({
         window.innerWidth <= 768 ||
         'ontouchstart' in window)
 
-    // On mobile / touch devices, disable expensive CSS Gaussian blur entirely.
-    // CSS blur on dozens of elements during momentum scrolling overflows mobile GPU VRAM
-    // and causes the browser process to freeze for multiple seconds.
-    const shouldBlur = !isTouch && enableBlur
+    // On smartphones: Bypass heavy GSAP ScrollTrigger entirely to prevent touch-scroll lag.
+    // Uses native IntersectionObserver + hardware-accelerated CSS fade-up transition.
+    if (isTouch) {
+      el.classList.add('mobile-reveal')
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              entry.target.classList.add('is-revealed')
+              observer.unobserve(entry.target)
+            }
+          })
+        },
+        { rootMargin: '0px 0px -5% 0px', threshold: 0.1 }
+      )
+      observer.observe(el)
+      return () => {
+        observer.disconnect()
+      }
+    }
 
-    // On mobile, avoid rotation to prevent continuous matrix rasterization.
-    const effectiveRotation = isTouch ? 0 : baseRotation
-
-    // On mobile, trigger earlier and complete earlier (in the lower third of the screen)
-    // so content never appears late or delayed to the user.
-    const effectiveStart = isTouch ? 'top 98%' : start
-    const effectiveEnd = isTouch ? 'top 72%' : (end || wordAnimationEnd)
-    const effectiveWordEnd = isTouch ? 'top 72%' : (wordAnimationEnd || end)
-    const effectiveBaseOpacity = isTouch ? Math.max(baseOpacity, 0.4) : baseOpacity
-
-    // On mobile, use a fast, tight scrub (0.15) so animations don't lag behind 800ms
-    // after the user flicks their finger, completely eliminating animation backlogs.
-    const effectiveScrub = isTouch
-      ? (typeof scrub === 'number' ? Math.min(scrub, 0.15) : true)
-      : scrub
+    const shouldBlur = enableBlur
+    const effectiveRotation = baseRotation
+    const effectiveStart = start
+    const effectiveEnd = end || 'top 70%'
+    const effectiveWordEnd = wordAnimationEnd || end || 'top 70%'
+    const effectiveBaseOpacity = baseOpacity
+    const effectiveScrub = scrub
 
     const scroller =
       scrollContainerRef && scrollContainerRef.current
@@ -129,8 +137,6 @@ export default function ScrollReveal({
               start: effectiveStart,
               end: rotationEnd || effectiveEnd,
               scrub: effectiveScrub,
-              fastScrollEnd: true,
-              preventOverlaps: true,
             },
           }
         )
@@ -161,8 +167,6 @@ export default function ScrollReveal({
                 start: effectiveStart,
                 end: effectiveWordEnd,
                 scrub: effectiveScrub,
-                fastScrollEnd: true,
-                preventOverlaps: true,
               },
             }
           )
@@ -187,8 +191,6 @@ export default function ScrollReveal({
               start: effectiveStart,
               end: effectiveEnd,
               scrub: effectiveScrub,
-              fastScrollEnd: true,
-              preventOverlaps: true,
             },
           }
         )
