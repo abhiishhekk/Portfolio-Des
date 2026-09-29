@@ -1,5 +1,6 @@
 import { ArrowDown, Github } from 'lucide-react'
-import WarpText from './WarpText'
+import SplitText from './SplitText'
+import AnimatedContent from './AnimatedContent'
 import RotatingText from './RotatingText'
 import { useLeetCode } from '../hooks/useLeetCode'
 
@@ -10,7 +11,7 @@ const ROLES = [
   'CS @ NIT Allahabad',
 ]
 
-export default function Hero() {
+export default function Hero({ isPageVisible = true }) {
   const leetCode = useLeetCode('abhiishhek_k')
 
   function scrollTo(id) {
@@ -28,89 +29,127 @@ export default function Hero() {
 
           <h1 className="hero-title" aria-label="Abhishek Kumar.">
             <span className="sr-only">Abhishek Kumar.</span>
-            <div className="hero-title-warp">
-              <WarpText
-                text={"Abhishek\nKumar."}
-                fontFamily="Syne, sans-serif"
-                fontWeight={800}
-                fontSize="clamp(2.75rem, 12vw, 6.25rem)"
-                letterSpacing="-0.04em"
-                lineHeight={0.94}
-                warpStrength={0.09}
-                warpScale={1.6}
-                speed={0.55}
-                pointerInfluence={0.45}
-                pointerStrength={0.4}
-                refraction={0.02}
-                ripple={true}
-              />
-            </div>
-            <div className="hero-title-static" aria-hidden="true">
-              <span className="hero-title-word">Abhishek</span>
-              <span className="hero-title-word">Kumar.</span>
-            </div>
+            <SplitText
+              text={"Abhishek\nKumar."}
+              tag="span"
+              className="hero-split-text"
+              delay={40}
+              duration={0.75}
+              ease="power3.out"
+              splitType="chars"
+              from={{ opacity: 0, y: 45 }}
+              to={{ opacity: 1, y: 0 }}
+              threshold={0.1}
+              textAlign="center"
+              active={isPageVisible}
+            />
           </h1>
 
-          <div
-            className="hero-role-wrapper"
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '8px',
-              flexWrap: 'nowrap',
-              whiteSpace: 'nowrap',
-              fontSize: '1.125rem',
-              color: 'var(--fg-muted)',
-              minHeight: '2rem',
-              height: '2rem',
-            }}
+          {/* Role subtitle text */}
+          <AnimatedContent
+            distance={28}
+            direction="vertical"
+            duration={0.75}
+            ease="power3.out"
+            delay={0.25}
+            active={isPageVisible}
+            className="hero-animated-block"
           >
-            <span style={{ whiteSpace: 'nowrap' }}>I&apos;m a</span>
-            <RotatingText texts={ROLES} interval={2600} />
-          </div>
-
-          <p className="hero-subtitle">
-            CS undergrad at{' '}
-            <strong style={{ color: 'var(--fg)', fontWeight: 600 }}>NIT Allahabad</strong> — solved{' '}
-            {leetCode.totalSolved}+ problems on LeetCode, building scalable full-stack apps and competing in
-            algorithmic challenges.
-          </p>
-
-          <div className="hero-ctas">
-            <button
-              className="btn-primary"
-              onClick={() => scrollTo('projects')}
-              id="hero-view-work-btn"
+            <div
+              className="hero-role-wrapper"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+                flexWrap: 'nowrap',
+                whiteSpace: 'nowrap',
+                fontSize: '1.125rem',
+                color: 'var(--fg-muted)',
+                minHeight: '2rem',
+                height: '2rem',
+              }}
             >
-              View my work
-              <ArrowDown size={16} />
-            </button>
-            <button
-              className="btn-secondary"
-              onClick={() => scrollTo('contact')}
-              id="hero-contact-btn"
-            >
-              Get in touch
-            </button>
-            <a
-              href="https://github.com/abhiishhekk"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="btn-secondary"
-              id="hero-github-btn"
-              aria-label="Visit GitHub profile"
-            >
-              <Github size={16} />
-              GitHub
-            </a>
-          </div>
+              <span style={{ whiteSpace: 'nowrap' }}>I&apos;m a</span>
+              <RotatingText texts={ROLES} interval={2600} />
+            </div>
+          </AnimatedContent>
 
-          <div className="hero-scroll-hint">
-            <span className="scroll-line" aria-hidden="true" />
-            Scroll to explore
-            <span className="scroll-line" aria-hidden="true" />
-          </div>
+          {/* Bio paragraph text */}
+          <AnimatedContent
+            distance={28}
+            direction="vertical"
+            duration={0.8}
+            ease="power3.out"
+            delay={0.4}
+            active={isPageVisible}
+            className="hero-animated-block"
+          >
+            <p className="hero-subtitle">
+              CS undergrad at{' '}
+              <strong style={{ color: 'var(--fg)', fontWeight: 600 }}>NIT Allahabad</strong> — solved{' '}
+              {leetCode.totalSolved}+ problems on LeetCode, building scalable full-stack apps and competing in
+              algorithmic challenges.
+            </p>
+          </AnimatedContent>
+
+          {/* Calls to action buttons */}
+          <AnimatedContent
+            distance={24}
+            direction="vertical"
+            duration={0.8}
+            ease="power3.out"
+            delay={0.7}
+            active={isPageVisible}
+            className="hero-animated-block"
+          >
+            <div className="hero-ctas">
+              <button
+                className="btn-primary"
+                onClick={() => scrollTo('projects')}
+                id="hero-view-work-btn"
+              >
+                View my work
+                <ArrowDown size={16} />
+              </button>
+              <button
+                className="btn-secondary"
+                onClick={() => scrollTo('contact')}
+                id="hero-contact-btn"
+              >
+                Get in touch
+              </button>
+              <a
+                href="https://github.com/abhiishhekk"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn-secondary"
+                id="hero-github-btn"
+                aria-label="Visit GitHub profile"
+              >
+                <Github size={16} />
+                GitHub
+              </a>
+            </div>
+          </AnimatedContent>
+
+          {/* Scroll explore hint */}
+          <AnimatedContent
+            distance={16}
+            direction="vertical"
+            duration={0.8}
+            ease="power3.out"
+            delay={0.9}
+            active={isPageVisible}
+            className="hero-animated-block"
+          >
+            <div className="hero-scroll-hint">
+              <span className="scroll-line" aria-hidden="true" />
+              Scroll to explore
+              <span className="scroll-line" aria-hidden="true" />
+            </div>
+          </AnimatedContent>
+
         </div>
       </div>
     </section>

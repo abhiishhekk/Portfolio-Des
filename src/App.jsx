@@ -85,7 +85,7 @@ export default function App() {
       <FullPageThemeSlider theme={theme} setTheme={setTheme} />
 
       <main id="main-content">
-        <Hero />
+        <Hero isPageVisible={isPageVisible} />
         <About />
         <Skills />
         <Projects />

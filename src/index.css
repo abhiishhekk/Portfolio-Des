@@ -484,20 +484,19 @@ section#projects {
   user-select: none;
 }
 
-.hero-title-warp {
-  display: block;
-  width: 100%;
-}
-
-.hero-title-static {
-  display: none;
+.hero-split-text {
   font-family: 'Syne', sans-serif;
   font-weight: 800;
+  font-size: clamp(2.75rem, 11vw, 6.25rem);
   letter-spacing: -0.04em;
+  line-height: 0.94;
   color: var(--fg);
   text-align: center;
-  user-select: none;
-  line-height: 0.94;
+}
+
+.hero-split-text .split-char {
+  display: inline-block;
+  will-change: transform, opacity;
 }
 
 .hero-title-warp-container {
@@ -524,6 +523,12 @@ section#projects {
   }
 }
 
+.hero-animated-block {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
 .hero-role-wrapper {
   display: flex;
   align-items: center;
@@ -533,7 +538,6 @@ section#projects {
   height: 2rem;
   min-height: 2rem;
   margin: 0 auto;
-  animation: heroFadeIn 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.5s both;
 }
 
 .hero-subtitle {
@@ -543,7 +547,6 @@ section#projects {
   line-height: 1.75;
   margin: 0 auto;
   text-align: center;
-  animation: heroFadeIn 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.65s both;
 }
 
 .hero-ctas {
@@ -553,7 +556,6 @@ section#projects {
   gap: 12px;
   flex-wrap: wrap;
   margin: 0 auto;
-  animation: heroFadeIn 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.8s both;
 }
 
 .btn-primary {
@@ -631,26 +633,7 @@ section#projects {
     width: 100%;
   }
 
-  .hero-title-warp {
-    display: none !important;
-  }
 
-  .hero-title-static {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    font-size: clamp(2.75rem, 13vw, 4.2rem);
-    line-height: 0.94;
-    letter-spacing: -0.04em;
-  }
-
-  .hero-title-static .hero-title-word {
-    display: block;
-    line-height: 0.94;
-    white-space: nowrap;
-  }
 
   .hero-role-wrapper {
     font-size: clamp(0.95rem, 3.6vw, 1.125rem);
@@ -668,28 +651,7 @@ section#projects {
   }
 }
 
-@media (hover: none) and (pointer: coarse) {
-  .hero-title-warp {
-    display: none !important;
-  }
 
-  .hero-title-static {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    font-size: clamp(2.75rem, 13vw, 4.2rem);
-    line-height: 0.94;
-    letter-spacing: -0.04em;
-  }
-
-  .hero-title-static .hero-title-word {
-    display: block;
-    line-height: 0.94;
-    white-space: nowrap;
-  }
-}
 
 .hero-scroll-hint {
   display: flex;
