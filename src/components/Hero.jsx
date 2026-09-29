@@ -99,7 +99,7 @@ export default function Hero({ isPageVisible = true }) {
             direction="vertical"
             duration={0.8}
             ease="power3.out"
-            delay={0.7}
+            delay={0.9}
             active={isPageVisible}
             className="hero-animated-block"
           >
@@ -139,7 +139,7 @@ export default function Hero({ isPageVisible = true }) {
             direction="vertical"
             duration={0.8}
             ease="power3.out"
-            delay={0.9}
+            delay={1.4}
             active={isPageVisible}
             className="hero-animated-block"
           >

@@ -23,16 +23,18 @@ export default function About() {
               containerClassName="section-title"
               textClassName="section-title"
             >
-              My Passion for Coding
+              Algorithms, Systems & the Web
             </ScrollReveal>
 
             <FadeContent delay={0.2}>
               <p className="about-bio" style={{ marginTop: '20px' }}>
-                CS undergraduate skilled in{' '}
-                <strong>concurrent &amp; multithreaded systems (C)</strong> and full-stack MERN
-                development; built a real-time Linux telemetry system (ProcTrace) applying OS &amp;
-                networking coursework. Solved <strong>{leetCode.totalSolved}+ DSA problems</strong> across LeetCode,
-                Codeforces and GeeksForGeeks.
+                CS undergrad at NIT Allahabad specializing in{' '}
+                <strong>concurrent systems in C</strong> and{' '}
+                <strong>full-stack MERN development</strong>. Built <strong>ProcTrace</strong>, a
+                real-time Linux telemetry tool, and solved{' '} over {' '}
+                <strong>{leetCode.totalSolved} DSA problems</strong> with a{' '}
+                <strong>{leetCode.rating} LeetCode rating</strong>. Based in India, open to remote
+                work worldwide.
               </p>
               <p className="about-bio" style={{ marginTop: '14px' }}>
                 I&apos;m based in <strong>Bihar, India</strong> and open to remote work worldwide —
@@ -43,7 +45,7 @@ export default function About() {
             <FadeContent delay={0.3}>
               <div className="location-badge" style={{ marginTop: '24px' }}>
                 <MapPin size={14} aria-hidden="true" />
-                Bihar, India 
+                Bihar, India
               </div>
             </FadeContent>
           </div>
