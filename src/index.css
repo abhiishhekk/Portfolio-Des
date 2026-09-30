@@ -103,6 +103,18 @@ html.no-theme-transition *::after {
 
 #root {
   width: 100%;
+  max-width: 100vw;
+  min-width: 0;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.portfolio-app-root {
+  width: 100%;
+  max-width: 100vw;
+  min-width: 0;
   overflow-x: hidden;
   display: flex;
   flex-direction: column;
@@ -111,6 +123,9 @@ html.no-theme-transition *::after {
 
 main {
   width: 100%;
+  max-width: 100vw;
+  min-width: 0;
+  overflow-x: hidden;
 }
 
 a,
@@ -215,25 +230,20 @@ section {
   contain: layout style;
 }
 
-section#projects,
 section#education {
   contain: none !important;
 }
 
 section#projects {
-  padding-bottom: 0 !important;
+  contain: none !important;
 }
 
 @media (max-width: 768px) {
   section {
     padding: 36px 0;
   }
-  section#projects,
   section#education {
     contain: none !important;
-  }
-  section#projects {
-    padding-bottom: 0 !important;
   }
 }
 

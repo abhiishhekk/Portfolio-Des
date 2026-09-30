@@ -167,8 +167,16 @@ const buildTextCanvas = ({ container, width, height, dpr, props }) => {
   ctx.textAlign = 'left'
   ctx.textBaseline = 'middle'
 
-  const isLight = typeof document !== 'undefined' && document.documentElement.getAttribute('data-theme') === 'light'
-  let resolvedColor = isLight ? '#0a0a0a' : '#f5f5f5'
+  let resolvedColor = '#f5f5f5'
+  if (typeof window !== 'undefined') {
+    const computedColor = window.getComputedStyle(container || document.body).getPropertyValue('--fg').trim()
+    if (computedColor) {
+      resolvedColor = computedColor
+    } else {
+      const isLight = document.documentElement.getAttribute('data-theme') === 'light'
+      resolvedColor = isLight ? '#0a0a0a' : '#f5f5f5'
+    }
+  }
   if (props.color && !props.color.includes('var(') && props.color !== 'currentColor') {
     resolvedColor = props.color
   }
@@ -235,37 +243,10 @@ export default function WarpText({
   lineHeight = 0.95,
   className = '',
   style,
+  isPageVisible = true,
 }) {
   const containerRef = useRef(null)
-  const [isMobile, setIsMobile] = useState(() => {
-    if (typeof window === 'undefined') return false
-    const hasFinePointer =
-      window.matchMedia && window.matchMedia('(hover: hover) and (pointer: fine)').matches
-    const isTouchOnly = 'ontouchstart' in window && !hasFinePointer
-    const isSmallScreen = window.innerWidth <= 768
-    return Boolean(isSmallScreen || isTouchOnly || !hasFinePointer)
-  })
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return
-    const checkMobile = () => {
-      const hasFinePointer =
-        window.matchMedia && window.matchMedia('(hover: hover) and (pointer: fine)').matches
-      const isTouchOnly = 'ontouchstart' in window && !hasFinePointer
-      const isSmallScreen = window.innerWidth <= 768
-      setIsMobile(Boolean(isSmallScreen || isTouchOnly || !hasFinePointer))
-    }
-
-    checkMobile()
-    const mq = window.matchMedia('(hover: hover) and (pointer: fine)')
-    mq.addEventListener?.('change', checkMobile)
-    window.addEventListener('resize', checkMobile)
-
-    return () => {
-      mq.removeEventListener?.('change', checkMobile)
-      window.removeEventListener('resize', checkMobile)
-    }
-  }, [])
+  const [webglSupported, setWebglSupported] = useState(true)
 
   const propsRef = useRef({
     text,
@@ -282,6 +263,7 @@ export default function WarpText({
     pointerStrength,
     refraction,
     ripple,
+    isPageVisible,
   })
   const contextRef = useRef(null)
 
@@ -301,11 +283,15 @@ export default function WarpText({
       pointerStrength,
       refraction,
       ripple,
+      isPageVisible,
     }
 
     if (contextRef.current) {
       syncUniforms(contextRef.current.program, propsRef.current)
       contextRef.current.rasterize()
+      if (isPageVisible) {
+        contextRef.current.resumeLoop?.()
+      }
     }
   }, [
     text,
@@ -322,10 +308,11 @@ export default function WarpText({
     pointerStrength,
     refraction,
     ripple,
+    isPageVisible,
   ])
 
   useEffect(() => {
-    if (isMobile) return undefined
+    if (!webglSupported) return undefined
     const container = containerRef.current
     if (!container || typeof window === 'undefined') return undefined
 
@@ -344,7 +331,6 @@ export default function WarpText({
     let visible = true
     let pageVisible = !document.hidden
     let reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false
-    let rasterVersion = 0
 
     const pointer = { x: 0.5, y: 0.5, tx: 0.5, ty: 0.5, active: 0, activeTarget: 0 }
     const startTime = performance.now()
@@ -358,8 +344,12 @@ export default function WarpText({
         dpr: Math.min(window.devicePixelRatio || 1, 1.5),
       })
       gl = renderer.gl
+      if (!gl) {
+        throw new Error('WebGL 2 context could not be created')
+      }
     } catch (error) {
       console.warn('WarpText: WebGL could not be initialized.', error)
+      setWebglSupported(false)
       return undefined
     }
 
@@ -451,17 +441,37 @@ export default function WarpText({
       rasterize()
     }
 
-    const onPointerMove = event => {
-      if (event.pointerType === 'touch') return
-      const w = lastWidth || canvas.clientWidth
-      const h = lastHeight || canvas.clientHeight
-      if (w <= 0 || h <= 0) return
-      pointer.tx = Math.max(0, Math.min(1, event.offsetX / w))
-      pointer.ty = Math.max(0, Math.min(1, 1 - event.offsetY / h))
+    const updatePointer = (clientX, clientY) => {
+      const rect = canvas.getBoundingClientRect()
+      if (rect.width <= 0 || rect.height <= 0) return
+      pointer.tx = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width))
+      pointer.ty = Math.max(0, Math.min(1, 1 - (clientY - rect.top) / rect.height))
       pointer.activeTarget = 1
     }
 
+    const onPointerMove = event => {
+      updatePointer(event.clientX, event.clientY)
+    }
+
+    const onPointerDown = event => {
+      updatePointer(event.clientX, event.clientY)
+    }
+
+    const onPointerEnter = event => {
+      if (event.pointerType !== 'touch') {
+        updatePointer(event.clientX, event.clientY)
+      }
+    }
+
     const onPointerLeave = () => {
+      pointer.activeTarget = 0
+    }
+
+    const onPointerUp = () => {
+      pointer.activeTarget = 0
+    }
+
+    const onPointerCancel = () => {
       pointer.activeTarget = 0
     }
 
@@ -470,12 +480,15 @@ export default function WarpText({
       contextLost = true
       if (raf) cancelAnimationFrame(raf)
       raf = 0
+      setWebglSupported(false)
     }
 
     const onVisibility = () => {
       pageVisible = !document.hidden
-      if (pageVisible && visible && !raf) raf = requestAnimationFrame(loop)
-      if (!pageVisible && raf) {
+      if (pageVisible && visible && propsRef.current.isPageVisible !== false && !raf) {
+        raf = requestAnimationFrame(loop)
+      }
+      if ((!pageVisible || !visible || propsRef.current.isPageVisible === false) && raf) {
         cancelAnimationFrame(raf)
         raf = 0
       }
@@ -489,7 +502,10 @@ export default function WarpText({
     }
 
     const loop = now => {
-      if (disposed || contextLost || !visible) return
+      if (disposed || contextLost || !visible || !pageVisible || propsRef.current.isPageVisible === false) {
+        raf = 0
+        return
+      }
 
       const elapsed = (now - startTime) * 0.001
       const idleX = 0.5 + Math.sin(elapsed * 0.33) * 0.12
@@ -511,13 +527,21 @@ export default function WarpText({
       raf = requestAnimationFrame(loop)
     }
 
+    const resumeLoop = () => {
+      if (!disposed && !contextLost && visible && pageVisible && !raf) {
+        raf = requestAnimationFrame(loop)
+      }
+    }
+
     resizeObserver = new ResizeObserver(resize)
     resizeObserver.observe(container)
 
     intersectionObserver = new IntersectionObserver(
       ([entry]) => {
         visible = entry.isIntersecting
-        if (visible && pageVisible && !raf) raf = requestAnimationFrame(loop)
+        if (visible && pageVisible && propsRef.current.isPageVisible !== false && !raf) {
+          raf = requestAnimationFrame(loop)
+        }
         if (!visible && raf) {
           cancelAnimationFrame(raf)
           raf = 0
@@ -540,14 +564,18 @@ export default function WarpText({
       attributeFilter: ['data-theme'],
     })
 
-    canvas.addEventListener('pointermove', onPointerMove)
+    canvas.addEventListener('pointerenter', onPointerEnter)
+    canvas.addEventListener('pointermove', onPointerMove, { passive: true })
+    canvas.addEventListener('pointerdown', onPointerDown, { passive: true })
+    canvas.addEventListener('pointerup', onPointerUp, { passive: true })
     canvas.addEventListener('pointerleave', onPointerLeave)
+    canvas.addEventListener('pointercancel', onPointerCancel)
     canvas.addEventListener('webglcontextlost', onContextLost, false)
     document.addEventListener('visibilitychange', onVisibility)
     mediaQuery?.addEventListener('change', onReducedMotion)
 
     syncUniforms(program, propsRef.current)
-    contextRef.current = { program, rasterize }
+    contextRef.current = { program, rasterize, resumeLoop }
     resize()
     if (document.fonts?.ready) {
       document.fonts.ready.then(() => {
@@ -563,11 +591,16 @@ export default function WarpText({
       disposed = true
       contextRef.current = null
       if (raf) cancelAnimationFrame(raf)
+      raf = 0
       resizeObserver?.disconnect()
       intersectionObserver?.disconnect()
       themeObserver?.disconnect()
+      canvas.removeEventListener('pointerenter', onPointerEnter)
       canvas.removeEventListener('pointermove', onPointerMove)
+      canvas.removeEventListener('pointerdown', onPointerDown)
+      canvas.removeEventListener('pointerup', onPointerUp)
       canvas.removeEventListener('pointerleave', onPointerLeave)
+      canvas.removeEventListener('pointercancel', onPointerCancel)
       canvas.removeEventListener('webglcontextlost', onContextLost)
       document.removeEventListener('visibilitychange', onVisibility)
       mediaQuery?.removeEventListener('change', onReducedMotion)
@@ -583,10 +616,37 @@ export default function WarpText({
 
       if (canvas.parentNode === container) container.removeChild(canvas)
     }
-  }, [isMobile])
+  }, [webglSupported])
 
-  if (isMobile) {
-    return null
+  if (!webglSupported) {
+    const lines = String(text || '').split('\n')
+    return (
+      <div
+        className={`warp-text warp-text--fallback ${className}`.trim()}
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontFamily,
+          fontWeight,
+          fontSize,
+          letterSpacing,
+          lineHeight,
+          color: 'var(--fg)',
+          textAlign: 'center',
+          ...style,
+        }}
+        role="img"
+        aria-label={text.replace('\n', ' ')}
+      >
+        {lines.map((line, i) => (
+          <span key={i} className="warp-fallback-line">
+            {line}
+          </span>
+        ))}
+      </div>
+    )
   }
 
   return (
@@ -595,7 +655,7 @@ export default function WarpText({
       className={`warp-text ${className}`.trim()}
       style={style}
       role="img"
-      aria-label={text}
+      aria-label={text.replace('\n', ' ')}
     />
   )
 }

@@ -22,31 +22,52 @@ const AnimatedContent = ({
   threshold = 0.1,
   delay = 0,
   disappearAfter = 0,
-  disappearDuration = 0.5,
+  disappearDuration = 0.3,
   disappearEase = 'power3.in',
   onComplete,
   onDisappearanceComplete,
   className = '',
   active = true,
+  scrollTrigger = true,
   style = {},
   ...props
 }) => {
   const ref = useRef(null);
+  const hasAnimatedInRef = useRef(false);
+  const activeTimelineRef = useRef(null);
 
   useEffect(() => {
     const el = ref.current;
     if (!el || typeof window === 'undefined') return;
 
-    let scrollerTarget = container || document.getElementById('snap-main-container') || null;
-
-    if (typeof scrollerTarget === 'string') {
-      scrollerTarget = document.querySelector(scrollerTarget);
-    }
-
     const axis = direction === 'horizontal' ? 'x' : 'y';
     const offset = reverse ? -distance : distance;
     const startPct = (1 - threshold) * 100;
 
+    // Handle closing / exit animation when active becomes false
+    if (!active) {
+      if (hasAnimatedInRef.current) {
+        if (activeTimelineRef.current) {
+          activeTimelineRef.current.kill();
+        }
+        activeTimelineRef.current = gsap.to(el, {
+          [axis]: offset,
+          scale,
+          opacity: animateOpacity ? initialOpacity : 0,
+          duration: disappearDuration,
+          ease: disappearEase,
+          onComplete: () => {
+            hasAnimatedInRef.current = false;
+            onDisappearanceComplete?.();
+          }
+        });
+      } else {
+        onDisappearanceComplete?.();
+      }
+      return;
+    }
+
+    // Active is true: set initial entrance state
     gsap.set(el, {
       [axis]: offset,
       scale,
@@ -54,24 +75,24 @@ const AnimatedContent = ({
       visibility: 'visible'
     });
 
-    if (!active) {
-      return;
-    }
-
     const tl = gsap.timeline({
       paused: true,
       delay,
       onComplete: () => {
+        hasAnimatedInRef.current = true;
         if (onComplete) onComplete();
         if (disappearAfter > 0) {
-          gsap.to(el, {
+          activeTimelineRef.current = gsap.to(el, {
             [axis]: reverse ? distance : -distance,
-            scale: 0.8,
+            scale,
             opacity: animateOpacity ? initialOpacity : 0,
             delay: disappearAfter,
             duration: disappearDuration,
             ease: disappearEase,
-            onComplete: () => onDisappearanceComplete?.()
+            onComplete: () => {
+              hasAnimatedInRef.current = false;
+              onDisappearanceComplete?.();
+            }
           });
         }
       }
@@ -85,19 +106,31 @@ const AnimatedContent = ({
       ease
     });
 
-    const st = ScrollTrigger.create({
-      trigger: el,
-      scroller: scrollerTarget,
-      start: `top ${startPct}%`,
-      once: true,
-      onEnter: () => tl.play()
-    });
+    activeTimelineRef.current = tl;
+
+    let st = null;
+    if (scrollTrigger) {
+      let scrollerTarget = container || document.getElementById('snap-main-container') || null;
+      if (typeof scrollerTarget === 'string') {
+        scrollerTarget = document.querySelector(scrollerTarget);
+      }
+      st = ScrollTrigger.create({
+        trigger: el,
+        scroller: scrollerTarget,
+        start: `top ${startPct}%`,
+        once: true,
+        onEnter: () => tl.play()
+      });
+    } else {
+      tl.play();
+    }
 
     return () => {
-      st.kill();
-      tl.kill();
+      if (st) st.kill();
+      if (tl) tl.kill();
     };
   }, [
+    active,
     container,
     distance,
     direction,
@@ -114,7 +147,7 @@ const AnimatedContent = ({
     disappearEase,
     onComplete,
     onDisappearanceComplete,
-    active
+    scrollTrigger
   ]);
 
   return (

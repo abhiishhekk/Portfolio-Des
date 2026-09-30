@@ -1,5 +1,5 @@
 import { ArrowDown, Github } from 'lucide-react'
-import SplitText from './SplitText'
+import WarpText from './WarpText'
 import AnimatedContent from './AnimatedContent'
 import RotatingText from './RotatingText'
 import { useLeetCode } from '../hooks/useLeetCode'
@@ -29,19 +29,21 @@ export default function Hero({ isPageVisible = true }) {
 
           <h1 className="hero-title" aria-label="Abhishek Kumar.">
             <span className="sr-only">Abhishek Kumar.</span>
-            <SplitText
+            <WarpText
               text={"Abhishek\nKumar."}
-              tag="span"
-              className="hero-split-text"
-              delay={40}
-              duration={0.75}
-              ease="power3.out"
-              splitType="chars"
-              from={{ opacity: 0, y: 45 }}
-              to={{ opacity: 1, y: 0 }}
-              threshold={0.1}
-              textAlign="center"
-              active={isPageVisible}
+              fontFamily="Syne, sans-serif"
+              fontWeight={800}
+              fontSize="clamp(2.75rem, 11vw, 6.25rem)"
+              letterSpacing="-0.04em"
+              lineHeight={0.94}
+              warpStrength={0.09}
+              warpScale={1.6}
+              speed={0.55}
+              pointerInfluence={0.45}
+              pointerStrength={0.4}
+              refraction={0.02}
+              ripple={true}
+              isPageVisible={isPageVisible}
             />
           </h1>
 
@@ -51,7 +53,7 @@ export default function Hero({ isPageVisible = true }) {
             direction="vertical"
             duration={0.75}
             ease="power3.out"
-            delay={0.25}
+            delay={0.3}
             active={isPageVisible}
             className="hero-animated-block"
           >
@@ -81,7 +83,7 @@ export default function Hero({ isPageVisible = true }) {
             direction="vertical"
             duration={0.8}
             ease="power3.out"
-            delay={0.4}
+            delay={0.5}
             active={isPageVisible}
             className="hero-animated-block"
           >
@@ -139,7 +141,7 @@ export default function Hero({ isPageVisible = true }) {
             direction="vertical"
             duration={0.8}
             ease="power3.out"
-            delay={1.4}
+            delay={1.2}
             active={isPageVisible}
             className="hero-animated-block"
           >
