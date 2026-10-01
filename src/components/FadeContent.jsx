@@ -4,7 +4,7 @@ export default function FadeContent({
   children,
   className = '',
   style = {},
-  blur = true,
+  blur = false,
   blurStrength = 4,
   baseOpacity = 0.2,
   start = 'top 92%',

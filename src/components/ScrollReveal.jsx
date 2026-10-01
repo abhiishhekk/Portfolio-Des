@@ -1,4 +1,4 @@
-import { useEffect, useRef, useMemo } from 'react'
+import { useEffect, useRef, useMemo, forwardRef } from 'react'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import './ScrollReveal.css'
@@ -19,25 +19,37 @@ function requestScrollTriggerRefresh() {
   }
 }
 
-export default function ScrollReveal({
-  children,
-  text,
-  scrollContainerRef,
-  enableBlur = true,
-  baseOpacity = 0.2,
-  baseRotation = 3,
-  blurStrength = 4,
-  containerClassName = '',
-  textClassName = '',
-  start = 'top 92%',
-  end = 'top 70%',
-  rotationEnd = 'top 75%',
-  wordAnimationEnd = 'top 70%',
-  scrub = 0.5,
-  style = {},
-  tag: Tag = 'div',
-}) {
+const ScrollReveal = forwardRef(function ScrollReveal(
+  {
+    children,
+    text,
+    scrollContainerRef,
+    enableBlur = false,
+    baseOpacity = 0.2,
+    baseRotation = 0,
+    blurStrength = 4,
+    containerClassName = '',
+    textClassName = '',
+    start = 'top 92%',
+    end = 'top 70%',
+    rotationEnd = 'top 75%',
+    wordAnimationEnd = 'top 70%',
+    scrub = 0.5,
+    style = {},
+    tag: Tag = 'div',
+  },
+  forwardedRef
+) {
   const containerRef = useRef(null)
+
+  const setRefs = (node) => {
+    containerRef.current = node
+    if (typeof forwardedRef === 'function') {
+      forwardedRef(node)
+    } else if (forwardedRef) {
+      forwardedRef.current = node
+    }
+  }
 
   const isPureText = useMemo(() => {
     if (typeof text === 'string') return true
@@ -218,7 +230,7 @@ export default function ScrollReveal({
 
   return (
     <Tag
-      ref={containerRef}
+      ref={setRefs}
       className={`scroll-reveal ${containerClassName}`.trim()}
       style={style}
     >
@@ -229,4 +241,6 @@ export default function ScrollReveal({
       )}
     </Tag>
   )
-}
+})
+
+export default ScrollReveal

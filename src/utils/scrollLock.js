@@ -44,15 +44,3 @@ export function unlockScroll() {
   }
 }
 
-export function forceUnlockScroll() {
-  lockCount = 0
-  if (typeof window !== 'undefined') {
-    document.documentElement.classList.remove('scroll-locked')
-    document.body.classList.remove('scroll-locked')
-    document.documentElement.style.overflow = ''
-    document.body.style.overflow = ''
-
-    window.__lenis?.start()
-    window.__lenis?.resize()
-  }
-}

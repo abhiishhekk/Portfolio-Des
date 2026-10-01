@@ -22,7 +22,7 @@ export function useSmoothScroll() {
       return
     }
 
-    // Initialize Lenis
+    // Initialize Lenis with GSAP ticker driving the frame loop
     const lenis = new Lenis({
       lerp: 0.1,
       wheelMultiplier: 0.95,
@@ -30,7 +30,7 @@ export function useSmoothScroll() {
       orientation: 'vertical',
       smoothWheel: true,
       syncTouch: false,
-      autoRaf: true,
+      autoRaf: false,
       autoResize: true,
     })
 
@@ -40,6 +40,12 @@ export function useSmoothScroll() {
       ScrollTrigger.update()
     }
     lenis.on('scroll', onScroll)
+
+    const updateTicker = (time) => {
+      lenis.raf(time * 1000)
+    }
+    gsap.ticker.add(updateTicker)
+    gsap.ticker.lagSmoothing(0)
 
     // Sync Lenis on ScrollTrigger refresh
     const onRefresh = () => {
@@ -52,6 +58,7 @@ export function useSmoothScroll() {
     }
 
     return () => {
+      gsap.ticker.remove(updateTicker)
       ScrollTrigger.removeEventListener('refresh', onRefresh)
       lenis.off('scroll', onScroll)
       lenis.destroy()

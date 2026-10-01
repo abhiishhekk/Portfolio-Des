@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { Github, ExternalLink, X, ChevronLeft, ChevronRight } from 'lucide-react'
 import { lockScroll, unlockScroll } from '../utils/scrollLock'
 import AnimatedContent from './AnimatedContent'
+import ScrollReveal from './ScrollReveal'
 import './Projects.css'
 
 import urbanResolveImg from '../assets/UrbanResolve.webp'
@@ -300,28 +301,13 @@ export default function Projects() {
     const rail = railRef.current
     if (!rail) return
 
-    let gestureLock = null
-    let gestureTimer = null
-
     const onWheel = (e) => {
-      if (!gestureLock) {
-        if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) {
-          gestureLock = 'horizontal'
-        } else {
-          gestureLock = 'vertical'
-        }
-      }
-
-      clearTimeout(gestureTimer)
-      gestureTimer = setTimeout(() => {
-        gestureLock = null
-      }, 140)
-
-      if (gestureLock === 'vertical') {
+      // If purely or predominantly vertical scroll, let page scroll normally without overhead
+      if (Math.abs(e.deltaX) === 0 || Math.abs(e.deltaY) >= Math.abs(e.deltaX)) {
         return
       }
 
-      if (gestureLock === 'horizontal' && Math.abs(e.deltaX) > 0) {
+      if (Math.abs(e.deltaX) > 0) {
         e.preventDefault()
         e.stopPropagation()
         const max = maxScrollXRef.current
@@ -350,7 +336,6 @@ export default function Projects() {
 
     rail.addEventListener('wheel', onWheel, { passive: false })
     return () => {
-      clearTimeout(gestureTimer)
       rail.removeEventListener('wheel', onWheel)
     }
   }, [applyInstant, getStep])
@@ -510,20 +495,24 @@ export default function Projects() {
     >
       {/* Header */}
       <div className="container apple-projects-header-container" ref={headerContainerRef}>
-        <AnimatedContent
-          distance={28}
-          direction="vertical"
-          duration={0.75}
-          ease="power3.out"
-          threshold={0.15}
-        >
-          <div className="apple-projects-title-row">
-            <div className="apple-projects-heading-wrap">
-              <h2 className="apple-projects-headline" ref={headlineRef}>
-                Get to know my projects.
-              </h2>
-            </div>
+        <div className="apple-projects-title-row">
+          <div className="apple-projects-heading-wrap">
+            <ScrollReveal
+              ref={headlineRef}
+              tag="h2"
+              containerClassName="apple-projects-headline"
+              textClassName="apple-projects-headline"
+            >
+              Get to know my projects.
+            </ScrollReveal>
+          </div>
 
+          <ScrollReveal
+            containerClassName="apple-carousel-controls-wrap"
+            baseOpacity={0.2}
+            start="top 92%"
+            end="top 72%"
+          >
             <div className="apple-carousel-controls" aria-label="Carousel navigation">
               <button
                 type="button"
@@ -544,19 +533,17 @@ export default function Projects() {
                 <ChevronRight size={20} strokeWidth={2.4} />
               </button>
             </div>
-          </div>
-        </AnimatedContent>
+          </ScrollReveal>
+        </div>
       </div>
 
       {/* Carousel track */}
-      <AnimatedContent
-        distance={36}
-        direction="vertical"
-        duration={0.85}
-        delay={0.12}
-        ease="power3.out"
-        threshold={0.1}
-        className="apple-carousel-animated-wrapper"
+      <ScrollReveal
+        containerClassName="apple-carousel-animated-wrapper"
+        baseOpacity={0.2}
+        start="top 92%"
+        end="top 70%"
+        scrub={0.6}
       >
         <div className="apple-carousel-track">
           <div
@@ -636,7 +623,7 @@ export default function Projects() {
             ))}
           </div>
         </div>
-      </AnimatedContent>
+      </ScrollReveal>
 
       {/* Modal */}
       {selectedProject && (

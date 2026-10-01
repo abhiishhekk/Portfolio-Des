@@ -151,12 +151,6 @@ export default function Nav({ theme, toggleTheme, setTheme }) {
     }
 
     window.addEventListener('portfolio:active-section', onCustomActive)
-    window.addEventListener('scroll', checkActiveSection, { passive: true })
-
-    const lenis = window.__lenis
-    if (lenis && typeof lenis.on === 'function') {
-      lenis.on('scroll', checkActiveSection)
-    }
 
     const observer = new IntersectionObserver(
       entries => {
@@ -167,7 +161,7 @@ export default function Nav({ theme, toggleTheme, setTheme }) {
           }
         })
       },
-      { rootMargin: '-30% 0px -50% 0px', threshold: 0 }
+      { rootMargin: '-20% 0px -50% 0px', threshold: 0 }
     )
 
     sections.forEach(({ id }) => {
@@ -180,10 +174,6 @@ export default function Nav({ theme, toggleTheme, setTheme }) {
 
     return () => {
       window.removeEventListener('portfolio:active-section', onCustomActive)
-      window.removeEventListener('scroll', checkActiveSection)
-      if (lenis && typeof lenis.off === 'function') {
-        lenis.off('scroll', checkActiveSection)
-      }
       observer.disconnect()
     }
   }, [])

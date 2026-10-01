@@ -42,6 +42,11 @@
   margin: 0;
 }
 
+.apple-carousel-controls-wrap {
+  display: flex;
+  align-items: center;
+}
+
 .apple-carousel-controls {
   display: flex;
   align-items: center;
