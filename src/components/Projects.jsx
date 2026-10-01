@@ -9,6 +9,8 @@ import urbanResolveImg from '../assets/UrbanResolve.webp'
 import teamSyncImg from '../assets/TeamSync.webp'
 import plantDiseaseImg from '../assets/PlantDiseaseDetection.webp'
 import procTraceImg from '../assets/ProcTrace.webp'
+import truckDriverImg from '../assets/TruckDriverPlaylist.webp'
+import codePulseImg from '../assets/CodePulse.webp'
 
 const PROJECTS = [
   {
@@ -114,6 +116,8 @@ const PROJECTS = [
   },
 ]
 
+const TOTAL_CARDS = PROJECTS.length + 1
+
 export default function Projects() {
   const [selectedProject, setSelectedProject] = useState(null)
   const [isClosing, setIsClosing] = useState(false)
@@ -182,7 +186,7 @@ export default function Projects() {
 
   
   const goToCard = useCallback((index, smooth = true) => {
-    const clampedIndex = Math.max(0, Math.min(PROJECTS.length - 1, index))
+    const clampedIndex = Math.max(0, Math.min(TOTAL_CARDS - 1, index))
     currentIndexRef.current = clampedIndex
 
     const step = getStep()
@@ -193,9 +197,9 @@ export default function Projects() {
     if (isMobile) {
       target = Math.max(0, Math.min(max, clampedIndex * step))
       setCanScrollLeft(clampedIndex > 0)
-      setCanScrollRight(clampedIndex < PROJECTS.length - 1)
+      setCanScrollRight(clampedIndex < TOTAL_CARDS - 1)
     } else {
-      if (clampedIndex === PROJECTS.length - 1) {
+      if (clampedIndex === TOTAL_CARDS - 1) {
         target = max
       } else if (clampedIndex === 0) {
         target = 0
@@ -232,9 +236,9 @@ export default function Projects() {
     if (isMobile) {
       target = Math.min(max, currentIndexRef.current * step)
       setCanScrollLeft(currentIndexRef.current > 0)
-      setCanScrollRight(currentIndexRef.current < PROJECTS.length - 1)
+      setCanScrollRight(currentIndexRef.current < TOTAL_CARDS - 1)
     } else {
-      if (currentIndexRef.current === PROJECTS.length - 1) {
+      if (currentIndexRef.current === TOTAL_CARDS - 1) {
         target = max
       } else if (currentIndexRef.current === 0) {
         target = 0
@@ -317,16 +321,16 @@ export default function Projects() {
         const step = getStep()
         const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768
         if (isMobile) {
-          currentIndexRef.current = Math.min(PROJECTS.length - 1, Math.round(next / step))
+          currentIndexRef.current = Math.min(TOTAL_CARDS - 1, Math.round(next / step))
           setCanScrollLeft(currentIndexRef.current > 0)
-          setCanScrollRight(currentIndexRef.current < PROJECTS.length - 1)
+          setCanScrollRight(currentIndexRef.current < TOTAL_CARDS - 1)
         } else {
           if (next >= max - 2) {
-            currentIndexRef.current = PROJECTS.length - 1
+            currentIndexRef.current = TOTAL_CARDS - 1
           } else if (next <= 2) {
             currentIndexRef.current = 0
           } else {
-            currentIndexRef.current = Math.min(PROJECTS.length - 1, Math.round(next / step))
+            currentIndexRef.current = Math.min(TOTAL_CARDS - 1, Math.round(next / step))
           }
           setCanScrollLeft(next > 2)
           setCanScrollRight(next < max - 2)
@@ -353,7 +357,7 @@ export default function Projects() {
   // Mouse drag
 
   const handleMouseDown = (e) => {
-    if (e.button !== 0 || e.target.closest('button') || e.target.closest('a')) return
+    if (e.button !== 0 || e.target.closest('button') || e.target.closest('.card-github-btn')) return
     isDraggingRef.current = true
     hasDraggedRef.current = false
     startXRef.current     = e.clientX
@@ -379,7 +383,7 @@ export default function Projects() {
       isDraggingRef.current = false
       if (railRef.current) railRef.current.style.cursor = ''
       const step = getStep()
-      const nearestIndex = Math.min(PROJECTS.length - 1, Math.round(scrollXRef.current / step))
+      const nearestIndex = Math.min(TOTAL_CARDS - 1, Math.round(scrollXRef.current / step))
       goToCard(nearestIndex)
     }
 
@@ -453,6 +457,14 @@ export default function Projects() {
   const handleCardClick = (project) => {
     if (hasDraggedRef.current) { hasDraggedRef.current = false; return }
     handleOpenModal(project)
+  }
+
+  const handleDualProjectClick = (e) => {
+    if (hasDraggedRef.current) {
+      e.preventDefault()
+      e.stopPropagation()
+      hasDraggedRef.current = false
+    }
   }
 
   // Modal controls
@@ -621,6 +633,87 @@ export default function Projects() {
                 </AnimatedContent>
               </AnimatedContent>
             ))}
+
+            {/* Additional card: Dual project previews opening GitHub */}
+            <AnimatedContent
+              as="article"
+              className="apple-project-card card-dual-projects"
+              role="region"
+              aria-label="Additional projects: TruckDriverMusic and CodePulse"
+              hoverScale={1.02}
+              hoverY={-4}
+              hoverDuration={0.5}
+              hoverEase="power2.out"
+              distance={0}
+              animateOpacity={false}
+              scrollTrigger={false}
+            >
+              <div className="card-ambient-backdrop" />
+
+              <div className="dual-projects-container">
+                {/* 1st project: TruckDriverMusic */}
+                <a
+                  href="https://github.com/abhiishhekk/TruckDriverMusic"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="dual-project-row"
+                  aria-label="View TruckDriverMusic on GitHub"
+                  onClick={handleDualProjectClick}
+                >
+                  <div className="card-mockup-window dual-mockup-window">
+                    <div className="card-mockup-header" aria-hidden="true">
+                      <span className="window-dot dot-red" />
+                      <span className="window-dot dot-yellow" />
+                      <span className="window-dot dot-green" />
+                      <span className="window-title">TruckDriverMusic</span>
+                    </div>
+                    <div className="card-image-wrap dual-image-wrap">
+                      <img
+                        src={truckDriverImg}
+                        alt="TruckDriverMusic interface preview"
+                        className="card-preview-img"
+                        loading="lazy"
+                        draggable={false}
+                      />
+                      <div className="dual-project-badge" aria-hidden="true">
+                        <Github size={15} strokeWidth={2.2} />
+                      </div>
+                    </div>
+                  </div>
+                </a>
+
+                {/* 2nd project: CodePulse */}
+                <a
+                  href="https://github.com/abhiishhekk/CodePulse"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="dual-project-row"
+                  aria-label="View CodePulse on GitHub"
+                  onClick={handleDualProjectClick}
+                >
+                  <div className="card-mockup-window dual-mockup-window">
+                    <div className="card-mockup-header" aria-hidden="true">
+                      <span className="window-dot dot-red" />
+                      <span className="window-dot dot-yellow" />
+                      <span className="window-dot dot-green" />
+                      <span className="window-title">CodePulse</span>
+                    </div>
+                    <div className="card-image-wrap dual-image-wrap">
+                      <img
+                        src={codePulseImg}
+                        alt="CodePulse interface preview"
+                        className="card-preview-img"
+                        loading="lazy"
+                        draggable={false}
+                      />
+                      <div className="dual-project-badge" aria-hidden="true">
+                        <Github size={15} strokeWidth={2.2} />
+                      </div>
+                    </div>
+                  </div>
+                </a>
+              </div>
+            </AnimatedContent>
           </div>
         </div>
       </ScrollReveal>

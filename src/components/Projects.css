@@ -433,6 +433,104 @@
   transform: scale(0.95);
 }
 
+/* Dual projects card (2 rows, single column, direct GitHub preview) */
+.card-dual-projects {
+  background: radial-gradient(circle at 50% 15%, #1c202d 0%, #0d0f16 55%, #06070a 100%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  padding: clamp(20px, 2.2vw, 24px);
+  cursor: default;
+  display: flex;
+  flex-direction: column;
+}
+
+.card-dual-projects .card-ambient-backdrop {
+  background: radial-gradient(circle at 50% 50%, rgba(99, 102, 241, 0.08) 0%, rgba(56, 189, 248, 0.04) 50%, transparent 80%);
+}
+
+.dual-projects-container {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.dual-project-row {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  text-decoration: none;
+  border-radius: 14px;
+  position: relative;
+  outline: none;
+  cursor: pointer;
+  -webkit-user-drag: none;
+  user-drag: none;
+}
+
+.dual-project-row:focus-visible {
+  outline: 2px solid var(--fg);
+}
+
+.dual-mockup-window {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.42);
+  transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1),
+              border-color 0.35s ease,
+              box-shadow 0.35s ease;
+}
+
+.dual-project-row:hover .dual-mockup-window {
+  transform: translateY(-2px) scale(1.015);
+  border-color: rgba(255, 255, 255, 0.28);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.55);
+}
+
+.dual-image-wrap {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  position: relative;
+  aspect-ratio: auto;
+}
+
+.dual-project-row:hover .card-preview-img {
+  transform: scale(1.04);
+}
+
+.dual-project-badge {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  z-index: 3;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(18, 18, 24, 0.82);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+  transition: transform 0.25s ease, background-color 0.25s ease, border-color 0.25s ease;
+  pointer-events: none;
+}
+
+.dual-project-row:hover .dual-project-badge {
+  transform: scale(1.12);
+  background: rgba(26, 28, 38, 0.95);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
 /* Indicators (hidden) */
 .apple-carousel-indicators {
   display: none;
@@ -793,6 +891,33 @@
     box-shadow: 0 4px 14px rgba(0, 0, 0, 0.22);
   }
 
+  .card-dual-projects {
+    padding: 18px;
+  }
+
+  .dual-projects-container {
+    gap: 14px;
+  }
+
+  .dual-project-row {
+    border-radius: 12px;
+  }
+
+  .dual-mockup-window {
+    border-radius: 12px;
+  }
+
+  .card-dual-projects .dual-project-badge {
+    color: #ffffff;
+    background: rgba(18, 18, 24, 0.88);
+    border: 1px solid rgba(255, 255, 255, 0.24);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+    bottom: 8px;
+    right: 8px;
+    width: 28px;
+    height: 28px;
+  }
+
   .apple-modal-overlay {
     padding: 12px;
   }
@@ -817,6 +942,14 @@
 
   .card-headline {
     font-size: 1.36rem;
+  }
+
+  .card-dual-projects {
+    padding: 14px;
+  }
+
+  .dual-projects-container {
+    gap: 10px;
   }
 }
 
