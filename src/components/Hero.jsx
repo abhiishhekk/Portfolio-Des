@@ -47,7 +47,7 @@ export default function Hero({ isPageVisible = true }) {
             />
           </h1>
 
-          {/* Role subtitle text */}
+          {/* Role */}
           <AnimatedContent
             distance={28}
             direction="vertical"
@@ -77,7 +77,7 @@ export default function Hero({ isPageVisible = true }) {
             </div>
           </AnimatedContent>
 
-          {/* Bio paragraph text */}
+          {/* Bio */}
           <AnimatedContent
             distance={28}
             direction="vertical"
@@ -95,7 +95,7 @@ export default function Hero({ isPageVisible = true }) {
             </p>
           </AnimatedContent>
 
-          {/* Calls to action buttons */}
+          {/* Actions */}
           <AnimatedContent
             distance={24}
             direction="vertical"
@@ -135,7 +135,7 @@ export default function Hero({ isPageVisible = true }) {
             </div>
           </AnimatedContent>
 
-          {/* Scroll explore hint */}
+          {/* Scroll hint */}
           <AnimatedContent
             distance={16}
             direction="vertical"

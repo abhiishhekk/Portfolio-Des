@@ -5,7 +5,7 @@ import './ScrollReveal.css'
 
 gsap.registerPlugin(ScrollTrigger)
 
-// Debounced singleton for font-ready refresh across all ScrollReveal instances
+// Refresh ScrollTrigger when fonts load
 let fontRefreshTimeout = null
 function requestScrollTriggerRefresh() {
   if (typeof document === 'undefined' || !document.fonts?.ready) return
@@ -71,7 +71,7 @@ export default function ScrollReveal({
     const el = containerRef.current
     if (!el) return
 
-    // If user prefers reduced motion, show content directly in place
+    // Respect reduced motion
     if (typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
       el.style.opacity = '1'
       el.style.filter = 'none'
@@ -89,8 +89,7 @@ export default function ScrollReveal({
         window.innerWidth <= 768 ||
         'ontouchstart' in window)
 
-    // On smartphones: Bypass heavy GSAP ScrollTrigger entirely to prevent touch-scroll lag.
-    // Uses native IntersectionObserver + hardware-accelerated CSS fade-up transition.
+    // Native IntersectionObserver on mobile
     if (isTouch) {
       el.classList.add('mobile-reveal')
       const observer = new IntersectionObserver(
@@ -172,7 +171,7 @@ export default function ScrollReveal({
           )
         }
       } else {
-        // Container element (cards, buttons, sections)
+        // Container reveal
         gsap.fromTo(
           el,
           {

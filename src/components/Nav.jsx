@@ -82,7 +82,7 @@ export default function Nav({ theme, toggleTheme, setTheme }) {
     window.addEventListener('resize', handleResize)
     window.addEventListener('orientationchange', handleResize)
 
-    // Media query listener specifically for switching between phone (<= 768px) and PC (> 768px)
+    // Update indicator on breakpoint change
     const mql = window.matchMedia('(min-width: 769px)')
     const handleMediaChange = () => {
       refreshIndicator()
@@ -93,7 +93,7 @@ export default function Nav({ theme, toggleTheme, setTheme }) {
       mql.addListener(handleMediaChange)
     }
 
-    // ResizeObserver detects when PC nav switches layout or changes size
+    // Update indicator when nav resizes
     let resizeObserver
     if (typeof ResizeObserver !== 'undefined' && navRef.current) {
       resizeObserver = new ResizeObserver(() => {
@@ -129,7 +129,7 @@ export default function Nav({ theme, toggleTheme, setTheme }) {
       label: i.label,
     }))
 
-    // Robust scroll-probe check: determine section spanning the upper-middle viewport
+    // Check which section is in view
     const checkActiveSection = () => {
       const probeY = window.innerHeight * 0.35
       for (let i = sections.length - 1; i >= 0; i--) {
@@ -175,7 +175,7 @@ export default function Nav({ theme, toggleTheme, setTheme }) {
       if (el) observer.observe(el)
     })
 
-    // Check once on mount
+    // Initial check
     checkActiveSection()
 
     return () => {

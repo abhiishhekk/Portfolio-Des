@@ -31,7 +31,7 @@ export function useLeetCode(username = USERNAME) {
   })
 
   useEffect(() => {
-    // If stats were cached recently, avoid network overhead on repeated visits
+    // Use cached stats if fresh
     if (stats.lastFetched && Date.now() - stats.lastFetched < CACHE_TTL_MS) {
       return
     }

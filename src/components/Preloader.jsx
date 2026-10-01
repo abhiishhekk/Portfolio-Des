@@ -35,7 +35,7 @@ export default function Preloader({ theme, onExitStart, onComplete }) {
   onCompleteRef.current = onComplete;
 
   useEffect(() => {
-    // Lock scroll completely while preloader is active
+    // Lock scroll during preloader
     lockScroll({ forceTop: true });
 
     const handleWindowLoad = () => {
@@ -50,7 +50,7 @@ export default function Preloader({ theme, onExitStart, onComplete }) {
       }
     }
 
-    // Sequentially reveal trace steps across the loading duration
+    // Reveal steps sequentially
     const totalRevealTime = 2200;
     const stepInterval = STEP_LIST.length > 1 ? totalRevealTime / (STEP_LIST.length - 1) : 0;
     const stepTimers = STEP_LIST.map((_, index) => {
@@ -63,16 +63,16 @@ export default function Preloader({ theme, onExitStart, onComplete }) {
     let settleTimeout;
     let finishTimeout;
 
-    // Check after minimum 3.0 seconds (giving time for the final step to display) and document is ready
+    // Check if ready to reveal
     const interval = setInterval(() => {
       const elapsed = Date.now() - startTimeRef.current;
       if (elapsed >= 3000 && pageLoadedRef.current) {
         clearInterval(interval);
 
-        // Settle ThoughtLine: folds trace and transitions to "Messages Over"
+        // Mark loading complete
         setWorking(false);
 
-        // Allow settle animation to complete before initiating page reveal
+        // Trigger exit animation
         settleTimeout = setTimeout(() => {
           onExitStartRef.current?.();
           setIsExiting(true);

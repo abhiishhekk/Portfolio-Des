@@ -21,9 +21,7 @@
   backface-visibility: hidden;
 }
 
-/* ==========================================================================
-   Lightweight Smartphone Scroll Reveal (Zero JS scroll overhead, 120fps)
-   ========================================================================== */
+/* Mobile scroll reveal */
 @media (max-width: 768px), (pointer: coarse) {
   .scroll-reveal.mobile-reveal {
     opacity: 0;

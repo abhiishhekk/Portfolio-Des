@@ -38,7 +38,7 @@ const PROJECTS = [
   {
     id: 'plant-disease',
     num: '02',
-    eyebrow: 'Quantized Edge AI & Gemini',
+    eyebrow: 'Resnet50 & Gemini RAG',
     headline: 'Smart. Precise. On device.',
     title: 'KrishiMitra',
     tagline: 'Edge-quantized ResNet50 paired with Google Gemini RAG for real-time leaf diagnosis and multilingual crop treatment.',
@@ -66,7 +66,8 @@ const PROJECTS = [
     eyebrow: 'Real-Time Collaboration',
     headline: 'Sync tasks. Align teams.',
     title: 'TeamSync',
-    tagline: 'Live WebSocket kanban boards and sprint coordination with workspace isolation.',
+    tagline:
+      'Multi-tenant B2B workspace and epic management with granular RBAC and transactional data integrity.',
     description:
       'A collaborative team management and task coordination platform built to help teams synchronize workflows, manage project tasks, and communicate in real time.',
     theme: 'light-apple',
@@ -89,7 +90,7 @@ const PROJECTS = [
     id: 'proc-trace',
     num: '04',
     eyebrow: 'Realtime CPU & Memory Monitor',
-    headline: 'Deep trace. Zero lag.',
+    headline: 'Trace processes. Stream telemetry.',
     title: 'ProcTrace',
     tagline: 'High-density multithreaded Linux process telemetry dashboard with microsecond precision.',
     description:
@@ -120,10 +121,10 @@ export default function Projects() {
   const sectionRef          = useRef(null)
   const headerContainerRef  = useRef(null)
   const headlineRef         = useRef(null)
-  const railRef             = useRef(null)       // the sliding flex rail
-  const scrollXRef          = useRef(0)          // current slide offset (px)
-  const maxScrollXRef       = useRef(0)          // maximum slide offset
-  const currentIndexRef     = useRef(0)          // current active card index (0 to 3)
+  const railRef             = useRef(null)
+  const scrollXRef          = useRef(0)
+  const maxScrollXRef       = useRef(0)
+  const currentIndexRef     = useRef(0)
   const isDraggingRef       = useRef(false)
   const startXRef           = useRef(0)
   const baseScrollRef       = useRef(0)
@@ -142,9 +143,7 @@ export default function Projects() {
 
   const [leftOffset, setLeftOffset] = useState(getHeadingLeft)
 
-  // ─── Helpers ──────────────────────────────────────────────────────────────
-
-  /** Write the current scrollX to the rail's transform, no animation. */
+  // Rail transform without animation
   const applyInstant = useCallback((x) => {
     const rail = railRef.current
     if (!rail) return
@@ -152,7 +151,7 @@ export default function Projects() {
     rail.style.transform  = `translateX(${-x}px)`
   }, [])
 
-  /** Slide the rail to position x with a smooth CSS transition. */
+  // Rail slide with smooth transition
   const applySmooth = useCallback((x) => {
     const rail = railRef.current
     if (!rail) return
@@ -160,7 +159,7 @@ export default function Projects() {
     rail.style.transform  = `translateX(${-x}px)`
   }, [])
 
-  /** Calculate step width between cards (card width + gap) */
+  // Card step width including gap
   const getStep = useCallback(() => {
     const rail = railRef.current
     const cards = rail?.querySelectorAll('.apple-project-card')
@@ -175,26 +174,39 @@ export default function Projects() {
     return 340 + 20
   }, [])
 
-  /** Measure the exact left coordinate of the heading text */
+  // Align rail start with heading container
   const updateAlignment = useCallback(() => {
     setLeftOffset(getHeadingLeft())
   }, [])
 
-  /**
-   * Navigate to a specific card index.
-   * On mobile, each card is 100vw - 32px with 16px left/right margins,
-   * showing strictly ONE card at a time.
-   */
+  
   const goToCard = useCallback((index, smooth = true) => {
     const clampedIndex = Math.max(0, Math.min(PROJECTS.length - 1, index))
     currentIndexRef.current = clampedIndex
 
     const step = getStep()
-    let target = clampedIndex * step
-    if (target > maxScrollXRef.current) {
-      target = maxScrollXRef.current
+    const max = maxScrollXRef.current
+    const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768
+
+    let target = 0
+    if (isMobile) {
+      target = Math.max(0, Math.min(max, clampedIndex * step))
+      setCanScrollLeft(clampedIndex > 0)
+      setCanScrollRight(clampedIndex < PROJECTS.length - 1)
+    } else {
+      if (clampedIndex === PROJECTS.length - 1) {
+        target = max
+      } else if (clampedIndex === 0) {
+        target = 0
+      } else {
+        target = Math.min(max, clampedIndex * step)
+        if (max - target < step * 0.4) {
+          target = max
+        }
+      }
+      setCanScrollLeft(target > 2)
+      setCanScrollRight(target < max - 2)
     }
-    target = Math.max(0, target)
 
     scrollXRef.current = target
     if (smooth) {
@@ -202,14 +214,9 @@ export default function Projects() {
     } else {
       applyInstant(target)
     }
-
-    setCanScrollLeft(clampedIndex > 0)
-    setCanScrollRight(clampedIndex < PROJECTS.length - 1)
   }, [getStep, applySmooth, applyInstant])
 
-  /**
-   * Compute maxScrollX and keep carousel properly aligned on viewport changes
-   */
+  // Calculate max scroll and keep index in bounds
   const computeMaxScroll = useCallback(() => {
     const rail = railRef.current
     if (!rail) return
@@ -217,24 +224,42 @@ export default function Projects() {
     const max = Math.max(0, rail.scrollWidth - window.innerWidth)
     maxScrollXRef.current = max
 
-    // Keep active card aligned
+    const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768
     const step = getStep()
-    const target = Math.min(max, currentIndexRef.current * step)
+    let target = 0
+
+    if (isMobile) {
+      target = Math.min(max, currentIndexRef.current * step)
+      setCanScrollLeft(currentIndexRef.current > 0)
+      setCanScrollRight(currentIndexRef.current < PROJECTS.length - 1)
+    } else {
+      if (currentIndexRef.current === PROJECTS.length - 1) {
+        target = max
+      } else if (currentIndexRef.current === 0) {
+        target = 0
+      } else {
+        target = Math.min(max, scrollXRef.current)
+      }
+      setCanScrollLeft(target > 2)
+      setCanScrollRight(target < max - 2)
+    }
+
     scrollXRef.current = target
     applyInstant(target)
-
-    setCanScrollLeft(currentIndexRef.current > 0)
-    setCanScrollRight(currentIndexRef.current < PROJECTS.length - 1)
   }, [applyInstant, getStep])
 
-  // Prevent any horizontal window scrolling
+  useEffect(() => {
+    computeMaxScroll()
+  }, [leftOffset, computeMaxScroll])
+
+  // Prevent horizontal window scroll
   useEffect(() => {
     if (window.scrollX > 0) {
       window.scrollTo(0, window.scrollY)
     }
   }, [])
 
-  // ─── On mount & resize: keep alignment and max-scroll in sync ──────────────
+  // Keep alignment and bounds in sync with window resize
   useEffect(() => {
     const sync = () => {
       if (window.scrollX > 0) window.scrollTo(0, window.scrollY)
@@ -254,7 +279,7 @@ export default function Projects() {
     }
   }, [updateAlignment, computeMaxScroll])
 
-  // ─── Intersection observer for nav highlight ───────────────────────────────
+  // Nav active section highlight
 
   useEffect(() => {
     const el = sectionRef.current
@@ -270,7 +295,7 @@ export default function Projects() {
     return () => obs.disconnect()
   }, [])
 
-  // ─── Horizontal wheel / trackpad swipe ────────────────────────────────────
+  // Wheel and trackpad horizontal scrolling
   useEffect(() => {
     const rail = railRef.current
     if (!rail) return
@@ -299,13 +324,27 @@ export default function Projects() {
       if (gestureLock === 'horizontal' && Math.abs(e.deltaX) > 0) {
         e.preventDefault()
         e.stopPropagation()
-        const next = Math.max(0, Math.min(maxScrollXRef.current, scrollXRef.current + e.deltaX))
+        const max = maxScrollXRef.current
+        const next = Math.max(0, Math.min(max, scrollXRef.current + e.deltaX))
         scrollXRef.current = next
         applyInstant(next)
         const step = getStep()
-        currentIndexRef.current = Math.min(PROJECTS.length - 1, Math.round(next / step))
-        setCanScrollLeft(currentIndexRef.current > 0)
-        setCanScrollRight(currentIndexRef.current < PROJECTS.length - 1)
+        const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768
+        if (isMobile) {
+          currentIndexRef.current = Math.min(PROJECTS.length - 1, Math.round(next / step))
+          setCanScrollLeft(currentIndexRef.current > 0)
+          setCanScrollRight(currentIndexRef.current < PROJECTS.length - 1)
+        } else {
+          if (next >= max - 2) {
+            currentIndexRef.current = PROJECTS.length - 1
+          } else if (next <= 2) {
+            currentIndexRef.current = 0
+          } else {
+            currentIndexRef.current = Math.min(PROJECTS.length - 1, Math.round(next / step))
+          }
+          setCanScrollLeft(next > 2)
+          setCanScrollRight(next < max - 2)
+        }
       }
     }
 
@@ -316,7 +355,7 @@ export default function Projects() {
     }
   }, [applyInstant, getStep])
 
-  // ─── Chevron buttons ──────────────────────────────────────────────────────
+  // Chevron navigation
 
   const handleScroll = (direction) => {
     if (direction === 'left') {
@@ -326,7 +365,7 @@ export default function Projects() {
     }
   }
 
-  // ─── Mouse drag ───────────────────────────────────────────────────────────
+  // Mouse drag
 
   const handleMouseDown = (e) => {
     if (e.button !== 0 || e.target.closest('button') || e.target.closest('a')) return
@@ -367,7 +406,7 @@ export default function Projects() {
     }
   }, [applyInstant, getStep, goToCard])
 
-  // ─── Touch swipe with card-by-card snapping on phones ─────────────────────
+  // Mobile touch swipe
 
   const touchStartXRef = useRef(0)
   const touchStartYRef = useRef(0)
@@ -395,7 +434,7 @@ export default function Projects() {
       if (Math.abs(dx) > Math.abs(dy)) {
         isHorizontalSwipeRef.current = true
       } else {
-        // Vertical touch swipe: let page scroll normally!
+        // Vertical touch: let page scroll normally
         isTouchDraggingRef.current = false
         return
       }
@@ -416,7 +455,7 @@ export default function Projects() {
 
     const dragDelta = scrollXRef.current - baseScrollRef.current
 
-    // Drag threshold of 28px cleanly advances or rewinds card
+    // Advance or rewind on 28px drag
     if (dragDelta > 28) {
       goToCard(currentIndexRef.current + 1)
     } else if (dragDelta < -28) {
@@ -431,7 +470,7 @@ export default function Projects() {
     handleOpenModal(project)
   }
 
-  // ─── Modal ─────────────────────────────────────────────────────────────────
+  // Modal controls
 
   const handleOpenModal = (project) => {
     setSelectedProject(project)
@@ -460,7 +499,7 @@ export default function Projects() {
     return () => window.removeEventListener('keydown', onKey)
   }, [selectedProject, isClosing, handleCloseModal])
 
-  // ─── Render ───────────────────────────────────────────────────────────────
+
 
   return (
     <section
@@ -469,7 +508,7 @@ export default function Projects() {
       ref={sectionRef}
       aria-label="Projects section"
     >
-      {/* ── Header: sits in the centered site container ── */}
+      {/* Header */}
       <div className="container apple-projects-header-container" ref={headerContainerRef}>
         <AnimatedContent
           distance={28}
@@ -509,13 +548,7 @@ export default function Projects() {
         </AnimatedContent>
       </div>
 
-      {/*
-        ── Full-Bleed Carousel Track ──────────────────────────────────────────
-        The track spans the full viewport width (not trapped in a fixed container box).
-        Card 1 starts at paddingLeft matching the heading's measured left position.
-        Cards extend across the full screen to the right and slide off to the full left.
-        ─────────────────────────────────────────────────────────────────────
-      */}
+      {/* Carousel track */}
       <AnimatedContent
         distance={36}
         direction="vertical"
@@ -529,19 +562,27 @@ export default function Projects() {
           <div
             className="apple-carousel-rail"
             ref={railRef}
-            style={{ paddingLeft: `${leftOffset}px` }}
+            style={{ paddingLeft: `${leftOffset}px`, paddingRight: `${leftOffset}px` }}
             onMouseDown={handleMouseDown}
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
           >
             {PROJECTS.map((proj, idx) => (
-              <article
+              <AnimatedContent
                 key={proj.id}
+                as="article"
                 className={`apple-project-card card-theme-${proj.theme}`}
                 onClick={() => handleCardClick(proj)}
                 role="button"
                 aria-label={`Project: ${proj.title}. ${proj.headline}. Click to view details.`}
+                hoverScale={1.02}
+                hoverY={-4}
+                hoverDuration={0.5}
+                hoverEase="power2.out"
+                distance={0}
+                animateOpacity={false}
+                scrollTrigger={false}
               >
                 {/* Card Ambient Glow */}
                 <div className="card-ambient-backdrop" />
@@ -573,24 +614,31 @@ export default function Projects() {
                   </div>
                 </div>
 
-                {/* GitHub direct repo button */}
-                <a
+                {/* GitHub button */}
+                <AnimatedContent
+                  as="a"
                   href={proj.github}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="card-github-btn"
                   aria-label={`View ${proj.title} on GitHub`}
                   onClick={(e) => e.stopPropagation()}
+                  hoverScale={1.16}
+                  hoverDuration={0.3}
+                  hoverEase="power2.out"
+                  distance={0}
+                  animateOpacity={false}
+                  scrollTrigger={false}
                 >
                   <Github size={18} strokeWidth={2.2} />
-                </a>
-              </article>
+                </AnimatedContent>
+              </AnimatedContent>
             ))}
           </div>
         </div>
       </AnimatedContent>
 
-      {/* ── Modal ──────────────────────────────────────────────────────────── */}
+      {/* Modal */}
       {selectedProject && (
         <div
           className={`apple-modal-overlay ${isClosing ? 'is-closing' : ''}`}

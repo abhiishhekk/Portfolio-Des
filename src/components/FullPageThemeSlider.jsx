@@ -29,7 +29,7 @@ export default function FullPageThemeSlider({ theme = 'dark', setTheme }) {
   const prevThemeRef = useRef(theme)
   const isFirstRender = useRef(true)
 
-  // Smooth rotational & scale morphing transition for Sun/Moon icons on theme change
+  // Sun and moon transition
   useEffect(() => {
     const sun = sunIconRef.current
     const moon = moonIconRef.current
@@ -56,7 +56,7 @@ export default function FullPageThemeSlider({ theme = 'dark', setTheme }) {
     gsap.killTweensOf([sun, moon, wrapper])
 
     if (theme === 'dark') {
-      // Transition from Moon to Sun
+      // Moon to sun
       gsap.to(moon, {
         opacity: 0,
         scale: 0.25,
@@ -83,7 +83,7 @@ export default function FullPageThemeSlider({ theme = 'dark', setTheme }) {
         )
       }
     } else {
-      // Transition from Sun to Moon
+      // Sun to moon
       gsap.to(sun, {
         opacity: 0,
         scale: 0.25,
@@ -120,12 +120,12 @@ export default function FullPageThemeSlider({ theme = 'dark', setTheme }) {
     }
   }, [])
 
-  // Keep transition origin ref aligned when theme changes outside the slider
+  // Sync theme ref
   useEffect(() => {
     transitionFromThemeRef.current = theme
   }, [theme])
 
-  // Synchronize handle position on screen resize or theme changes (when not interacting)
+  // Sync handle position on resize
   useEffect(() => {
     if (isDraggingRef.current || isTransitioning) return
 
@@ -133,7 +133,7 @@ export default function FullPageThemeSlider({ theme = 'dark', setTheme }) {
 
     const updateRestPos = () => {
       const currentWidth = typeof window !== 'undefined' ? window.innerWidth : 0
-      // Ignore height-only resize events (e.g. mobile Chrome address bar retracting/expanding on scroll)
+      // Ignore height-only resize
       if (Math.abs(currentWidth - lastWidth) < 2) return
       lastWidth = currentWidth
 
@@ -151,7 +151,7 @@ export default function FullPageThemeSlider({ theme = 'dark', setTheme }) {
     return () => window.removeEventListener('resize', updateRestPos)
   }, [isDark, isTransitioning, theme])
 
-  // Direct GPU-accelerated visual updater for maximum 120fps+ smoothness
+  // Update visual position
   const updateVisuals = useCallback((x) => {
     const winWidth = typeof window !== 'undefined' ? window.innerWidth : 1200
     const clampedX = Math.max(0, Math.min(winWidth, x))
@@ -171,14 +171,14 @@ export default function FullPageThemeSlider({ theme = 'dark', setTheme }) {
     }
   }, [])
 
-  // Complete handover to the target theme with zero page flicker
+  // Apply target theme
   const finishTransition = useCallback(
     (targetTheme) => {
       const winWidth = typeof window !== 'undefined' ? window.innerWidth : 1200
       const isTargetDark = targetTheme === 'dark'
       const finalX = isTargetDark ? winWidth : 0
 
-      // 1. Immediately hide the reveal layer and divider line directly in the DOM
+      // Hide reveal layer and line
       if (revealRef.current) {
         revealRef.current.style.display = 'none'
       }
@@ -186,34 +186,34 @@ export default function FullPageThemeSlider({ theme = 'dark', setTheme }) {
         lineRef.current.style.display = 'none'
       }
 
-      // 2. Instantly freeze CSS transitions to avoid slow color animation flicker
+      // Disable CSS transitions temporarily
       document.documentElement.classList.add('no-theme-transition')
 
-      // 3. Set theme synchronously on documentElement before React re-renders
+      // Update theme attribute
       document.documentElement.setAttribute('data-theme', targetTheme)
       localStorage.setItem('theme', targetTheme)
 
-      // 4. Update handle position to exact boundary
+      // Snap handle to edge
       setHandleX(finalX)
       handleXRef.current = finalX
       if (handleRef.current) {
         handleRef.current.style.left = `${finalX}px`
       }
 
-      // 5. Update React theme state
+      // Update state
       if (setTheme) {
         setTheme(targetTheme)
       }
 
-      // 6. Turn off transitioning and dragging states
+      // Reset flags
       setIsTransitioning(false)
       setIsDragging(false)
       isDraggingRef.current = false
 
-      // 7. Update transition theme ref
+      // Update ref
       transitionFromThemeRef.current = targetTheme
 
-      // 8. Remove no-theme-transition after the browser commits and paints the new theme
+      // Re-enable CSS transitions
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
           document.documentElement.classList.remove('no-theme-transition')
@@ -223,7 +223,7 @@ export default function FullPageThemeSlider({ theme = 'dark', setTheme }) {
     [setTheme]
   )
 
-  // Animate slider smoothly across the screen
+  // Animate handle across screen
   const animateAcross = useCallback(
     (targetTheme, isClick = false) => {
       if (animRef.current) animRef.current.kill()
@@ -233,7 +233,7 @@ export default function FullPageThemeSlider({ theme = 'dark', setTheme }) {
       const targetX = targetTheme === 'dark' ? winWidth : 0
       const dist = Math.abs(targetX - currentX)
 
-      // If already at or very close to boundary (< 6px), commit immediately
+      // Commit immediately if already at boundary
       if (dist < 6) {
         finishTransition(targetTheme)
         return
@@ -269,7 +269,7 @@ export default function FullPageThemeSlider({ theme = 'dark', setTheme }) {
     [finishTransition, updateVisuals]
   )
 
-  // Snap back smoothly to starting theme edge if drag didn't cross threshold
+  // Snap back to origin
   const snapBack = useCallback(
     (originTheme) => {
       if (animRef.current) animRef.current.kill()
@@ -322,7 +322,7 @@ export default function FullPageThemeSlider({ theme = 'dark', setTheme }) {
     [updateVisuals]
   )
 
-  // Start dragging with pointer events (works identically on mouse and touch)
+  // Pointer drag start
   const handlePointerDown = (e) => {
     if (e.button !== undefined && e.button !== 0) return
 
@@ -342,7 +342,7 @@ export default function FullPageThemeSlider({ theme = 'dark', setTheme }) {
     }
   }
 
-  // Active drag listeners using pointer events (never blocking page scroll when idle)
+  // Pointer move and release
   useEffect(() => {
     if (!isDragging) return
 
@@ -356,10 +356,10 @@ export default function FullPageThemeSlider({ theme = 'dark', setTheme }) {
         }
       }
 
-      // 1. Direct hardware-accelerated visual update for zero-latency tracking
+      // Visual update
       updateVisuals(e.clientX)
 
-      // 2. Coalesced React state update
+      // State update
       if (!rafIdRef.current) {
         rafIdRef.current = requestAnimationFrame(() => {
           setHandleX(handleXRef.current)
@@ -385,14 +385,14 @@ export default function FullPageThemeSlider({ theme = 'dark', setTheme }) {
       const currentX = handleXRef.current
       const currentTheme = transitionFromThemeRef.current || theme
 
-      // Click/Tap without dragging -> toggle theme smoothly
+      // Click without drag: toggle theme
       if (!hasMovedRef.current) {
         const nextTheme = currentTheme === 'dark' ? 'light' : 'dark'
         animateAcross(nextTheme, true)
         return
       }
 
-      // Dragged: evaluate switch threshold
+      // Check drag threshold
       if (currentTheme !== 'dark') {
         if (currentX > winWidth * 0.35) {
           animateAcross('dark', false)
@@ -428,7 +428,7 @@ export default function FullPageThemeSlider({ theme = 'dark', setTheme }) {
   const winWidth = typeof window !== 'undefined' ? window.innerWidth : 1200
   const clampedX = Math.max(0, Math.min(winWidth, handleX))
 
-  // Determine clip-path locked to the transition starting theme
+  // Calculate clip path
   const fromDark = transitionFromThemeRef.current === 'dark'
   let revealClipPath = 'none'
   if (showReveal) {
@@ -443,7 +443,7 @@ export default function FullPageThemeSlider({ theme = 'dark', setTheme }) {
 
   return (
     <>
-      {/* Real-time Theme Split Inversion Layer (active while dragging/animating) */}
+      {/* Reveal layer */}
       {showReveal && (
         <div
           ref={revealRef}
@@ -453,7 +453,7 @@ export default function FullPageThemeSlider({ theme = 'dark', setTheme }) {
         />
       )}
 
-      {/* Full Viewport Vertical Divider Line (only visible while sliding) */}
+      {/* Divider line */}
       {showReveal && (
         <div
           ref={lineRef}
@@ -463,7 +463,7 @@ export default function FullPageThemeSlider({ theme = 'dark', setTheme }) {
         />
       )}
 
-      {/* Center Draggable Knob Handle without border, with theme-based icon */}
+      {/* Slider handle */}
       <div
         ref={handleRef}
         className={`fullpage-slider-handle ${isDragging ? 'is-dragging' : ''} ${
@@ -495,7 +495,7 @@ export default function FullPageThemeSlider({ theme = 'dark', setTheme }) {
         }}
       >
         <div className="fullpage-slider-handle-content">
-          {/* Smooth Morphing Theme Icons: Sun & Moon */}
+          {/* Theme icons */}
           <span className="fullpage-slider-grip" aria-hidden="true">
             <span ref={iconWrapperRef} className="fullpage-slider-icons-wrapper">
               <span ref={sunIconRef} className="fullpage-slider-icon icon-sun">
@@ -507,7 +507,7 @@ export default function FullPageThemeSlider({ theme = 'dark', setTheme }) {
             </span>
           </span>
 
-          {/* Interactive Tooltip Badge (without shadow) */}
+          {/* Tooltip */}
           <div className="fullpage-slider-tooltip">
             {isAtLeft ? (
               <span>Slide right for Dark Mode →</span>

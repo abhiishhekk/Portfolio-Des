@@ -6,12 +6,12 @@ import { isScrollLocked } from '../utils/scrollLock'
 
 export function useSmoothScroll() {
   useEffect(() => {
-    // Respect user's motion preference
+    // Respect reduced motion
     if (typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
       return
     }
 
-    // Do NOT run Lenis on smartphones / touch screens.
+    // Skip on touch screens
     const isTouchDevice =
       typeof window !== 'undefined' &&
       (window.matchMedia('(pointer: coarse)').matches ||
@@ -22,7 +22,7 @@ export function useSmoothScroll() {
       return
     }
 
-    // Initialize Lenis smooth scroll tuned for Apple-grade fluid momentum
+    // Initialize Lenis
     const lenis = new Lenis({
       lerp: 0.1,
       wheelMultiplier: 0.95,
@@ -41,7 +41,7 @@ export function useSmoothScroll() {
     }
     lenis.on('scroll', onScroll)
 
-    // Re-measure Lenis scroll limit whenever ScrollTrigger pins or unpins elements
+    // Sync Lenis on ScrollTrigger refresh
     const onRefresh = () => {
       lenis.resize()
     }

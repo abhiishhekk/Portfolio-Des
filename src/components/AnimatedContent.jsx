@@ -29,6 +29,12 @@ const AnimatedContent = ({
   className = '',
   active = true,
   scrollTrigger = true,
+  hoverScale = 1,
+  hoverY = 0,
+  hoverDuration = 0.35,
+  hoverEase = 'power2.out',
+  tag,
+  as,
   style = {},
   ...props
 }) => {
@@ -40,11 +46,56 @@ const AnimatedContent = ({
     const el = ref.current;
     if (!el || typeof window === 'undefined') return;
 
+    let handlePointerEnter = null;
+    let handlePointerLeave = null;
+
+    if (hoverScale !== 1 || hoverY !== 0) {
+      let isHovered = false;
+
+      handlePointerEnter = () => {
+        if (typeof window !== 'undefined' && window.matchMedia && !window.matchMedia('(hover: hover)').matches) {
+          return;
+        }
+        isHovered = true;
+        gsap.to(el, {
+          scale: hoverScale,
+          y: hoverY,
+          duration: hoverDuration,
+          ease: hoverEase,
+          overwrite: 'auto'
+        });
+      };
+
+      handlePointerLeave = () => {
+        if (!isHovered) return;
+        isHovered = false;
+        gsap.to(el, {
+          scale: 1,
+          y: 0,
+          duration: hoverDuration,
+          ease: hoverEase,
+          overwrite: 'auto'
+        });
+      };
+
+      el.addEventListener('pointerenter', handlePointerEnter);
+      el.addEventListener('pointerleave', handlePointerLeave);
+    }
+
+    if (distance === 0 && !animateOpacity && scale === 1 && !scrollTrigger) {
+      hasAnimatedInRef.current = true;
+      gsap.set(el, { visibility: 'visible' });
+      return () => {
+        if (handlePointerEnter) el.removeEventListener('pointerenter', handlePointerEnter);
+        if (handlePointerLeave) el.removeEventListener('pointerleave', handlePointerLeave);
+      };
+    }
+
     const axis = direction === 'horizontal' ? 'x' : 'y';
     const offset = reverse ? -distance : distance;
     const startPct = (1 - threshold) * 100;
 
-    // Handle closing / exit animation when active becomes false
+    // Exit animation
     if (!active) {
       if (hasAnimatedInRef.current) {
         if (activeTimelineRef.current) {
@@ -64,10 +115,13 @@ const AnimatedContent = ({
       } else {
         onDisappearanceComplete?.();
       }
-      return;
+      return () => {
+        if (handlePointerEnter) el.removeEventListener('pointerenter', handlePointerEnter);
+        if (handlePointerLeave) el.removeEventListener('pointerleave', handlePointerLeave);
+      };
     }
 
-    // Active is true: set initial entrance state
+    // Initial entrance state
     gsap.set(el, {
       [axis]: offset,
       scale,
@@ -128,6 +182,8 @@ const AnimatedContent = ({
     return () => {
       if (st) st.kill();
       if (tl) tl.kill();
+      if (handlePointerEnter) el.removeEventListener('pointerenter', handlePointerEnter);
+      if (handlePointerLeave) el.removeEventListener('pointerleave', handlePointerLeave);
     };
   }, [
     active,
@@ -147,18 +203,25 @@ const AnimatedContent = ({
     disappearEase,
     onComplete,
     onDisappearanceComplete,
-    scrollTrigger
+    scrollTrigger,
+    hoverScale,
+    hoverY,
+    hoverDuration,
+    hoverEase
   ]);
 
+  const Tag = tag || as || 'div';
+  const initialVisibility = (animateOpacity || distance !== 0 || scale !== 1) ? 'hidden' : 'visible';
+
   return (
-    <div
+    <Tag
       ref={ref}
       className={className}
-      style={{ visibility: 'hidden', ...style }}
+      style={{ visibility: initialVisibility, ...style }}
       {...props}
     >
       {children}
-    </div>
+    </Tag>
   );
 };
 

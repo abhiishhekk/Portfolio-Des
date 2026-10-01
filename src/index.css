@@ -170,7 +170,7 @@ button:active {
   -webkit-tap-highlight-color: transparent;
 }
 
-/* Remove default blue outline on focus / click across all elements */
+/* Remove outline on focus */
 :focus {
   outline: none;
 }
@@ -841,7 +841,7 @@ section#projects {
   line-height: 1.3;
 }
 
-/* Medium screens & mobile: horizontally center the entire About section when stats move below */
+/* Center about section on mobile */
 @media (max-width: 960px) {
   .about-label-wrap {
     justify-content: center;
@@ -1243,7 +1243,7 @@ section#projects {
 
 .contact-section {
   position: relative;
-  z-index: 55; /* Stacks above SplashCursor (zIndex: 50) so fluid splashes flow behind the card */
+  z-index: 55; /* Above splash cursor */
   padding: 72px 0 100px;
 }
 
