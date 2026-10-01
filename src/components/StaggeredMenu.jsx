@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useMemo } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState, useMemo } from 'react'
 import { createPortal } from 'react-dom'
 import gsap from 'gsap'
 import {
@@ -34,7 +34,11 @@ export default function StaggeredMenu({
   const headerRef = useRef(null)
   const menuBodyRef = useRef(null)
 
-  const [mounted, setMounted] = useState(false)
+  const [mounted, setMounted] = useState(isOpen)
+  if (isOpen && !mounted) {
+    setMounted(true)
+  }
+
   const isClosingRef = useRef(false)
   const openTimelineRef = useRef(null)
   const closeTimelineRef = useRef(null)
@@ -96,13 +100,6 @@ export default function StaggeredMenu({
     return found ? found.href : '#home'
   }, [items, activeItem])
 
-  // Mount when isOpen becomes true
-  useEffect(() => {
-    if (isOpen) {
-      setMounted(true)
-    }
-  }, [isOpen])
-
   // Clean up timelines and scroll lock on unmount
   useEffect(() => {
     return () => {
@@ -114,87 +111,6 @@ export default function StaggeredMenu({
       }
     }
   }, [])
-
-  // GSAP Entrance and Exit
-  useEffect(() => {
-    if (!mounted) return
-
-    const container = containerRef.current
-    const backdrop = backdropRef.current
-    const layer1 = layer1Ref.current
-    const layer2 = layer2Ref.current
-    const panel = panelRef.current
-    const header = headerRef.current
-    const menuBody = menuBodyRef.current
-
-    const sign = position === 'right' ? 1 : -1
-
-    if (isOpen) {
-      isClosingRef.current = false
-      if (!lockedRef.current) {
-        lockScroll({ allowElement: panelRef.current })
-        lockedRef.current = true
-      }
-
-      if (closeTimelineRef.current) {
-        closeTimelineRef.current.kill()
-      }
-
-      const tl = gsap.timeline()
-      openTimelineRef.current = tl
-
-      // Reset initial styles synchronously before any paint
-      gsap.set(container, { visibility: 'visible' })
-      gsap.set(backdrop, { opacity: 0 })
-      gsap.set([layer1, layer2, panel], { xPercent: 100 * sign })
-      gsap.set(header, { opacity: 0, y: -10 })
-      if (menuBody) gsap.set(menuBody, { opacity: 0, y: 10 })
-
-      // Animate in sequence: panel reaches its resting position before navigation contents cleanly fade in
-      tl.to(backdrop, { opacity: 1, duration: 0.35, ease: 'power2.out' })
-        .to(
-          layer1,
-          {
-            xPercent: 0,
-            duration: 0.46,
-            ease: 'power3.inOut',
-          },
-          '-=0.25'
-        )
-        .to(
-          layer2,
-          {
-            xPercent: 0,
-            duration: 0.46,
-            ease: 'power3.inOut',
-          },
-          '-=0.36'
-        )
-        .to(
-          panel,
-          {
-            xPercent: 0,
-            duration: 0.46,
-            ease: 'power3.out',
-          },
-          '-=0.36'
-        )
-        .to(header, { opacity: 1, y: 0, duration: 0.22, ease: 'power2.out' }, '-=0.14')
-
-      if (menuBody) {
-        tl.to(
-          menuBody,
-          {
-            opacity: 1,
-            y: 0,
-            duration: 0.28,
-            ease: 'power2.out',
-          },
-          '-=0.1' // Only reveal as the panel arrives in place to eliminate any premature flicker
-        )
-      }
-    }
-  }, [isOpen, mounted, position])
 
   const handleClose = (itemToNavigate = null, event = null) => {
     // If already closing, ignore duplicate triggers
@@ -239,6 +155,9 @@ export default function StaggeredMenu({
           unlockScroll()
           lockedRef.current = false
         }
+        if (container) {
+          gsap.set(container, { visibility: 'hidden' })
+        }
         isClosingRef.current = false
         setMounted(false)
         if (onClose) onClose()
@@ -250,20 +169,107 @@ export default function StaggeredMenu({
       tl.to(menuBody, {
         opacity: 0,
         y: -14,
-        duration: 0.2,
+        duration: 0.18,
         ease: 'power2.in',
       })
     }
 
     if (header) {
-      tl.to(header, { opacity: 0, duration: 0.18 }, '<')
+      tl.to(header, { opacity: 0, duration: 0.16 }, '<')
     }
 
-    tl.to(panel, { xPercent: 100 * sign, duration: 0.38, ease: 'power3.inOut' }, '-=0.08')
-      .to(layer2, { xPercent: 100 * sign, duration: 0.38, ease: 'power3.inOut' }, '-=0.3')
-      .to(layer1, { xPercent: 100 * sign, duration: 0.38, ease: 'power3.inOut' }, '-=0.3')
+    tl.to(panel, { xPercent: 100 * sign, duration: 0.36, ease: 'power3.inOut' }, '-=0.08')
+      .to(layer2, { xPercent: 100 * sign, duration: 0.36, ease: 'power3.inOut' }, '-=0.28')
+      .to(layer1, { xPercent: 100 * sign, duration: 0.36, ease: 'power3.inOut' }, '-=0.28')
       .to(backdrop, { opacity: 0, duration: 0.22, ease: 'power2.in' }, '-=0.2')
   }
+
+  // GSAP Entrance and Exit — run synchronously before paint to prevent flicker
+  useLayoutEffect(() => {
+    if (!mounted) return
+
+    const container = containerRef.current
+    const backdrop = backdropRef.current
+    const layer1 = layer1Ref.current
+    const layer2 = layer2Ref.current
+    const panel = panelRef.current
+    const header = headerRef.current
+    const menuBody = menuBodyRef.current
+
+    if (!container || !panel || !backdrop || !layer1 || !layer2) return
+
+    const sign = position === 'right' ? 1 : -1
+
+    if (isOpen) {
+      isClosingRef.current = false
+      if (!lockedRef.current) {
+        lockScroll({ allowElement: panelRef.current })
+        lockedRef.current = true
+      }
+
+      if (closeTimelineRef.current) {
+        closeTimelineRef.current.kill()
+      }
+
+      const tl = gsap.timeline()
+      openTimelineRef.current = tl
+
+      // Reset initial styles synchronously BEFORE making container visible
+      gsap.set(backdrop, { opacity: 0 })
+      gsap.set([layer1, layer2, panel], { xPercent: 100 * sign })
+      gsap.set(header, { opacity: 0, y: -10 })
+      if (menuBody) gsap.set(menuBody, { opacity: 0, y: 10 })
+
+      // Reveal container only after all child layers are safely off-screen
+      gsap.set(container, { visibility: 'visible' })
+
+      // Animate in sequence: panels slide into view, followed by clean content fade-in
+      tl.to(backdrop, { opacity: 1, duration: 0.35, ease: 'power2.out' })
+        .to(
+          layer1,
+          {
+            xPercent: 0,
+            duration: 0.44,
+            ease: 'power3.inOut',
+          },
+          '-=0.25'
+        )
+        .to(
+          layer2,
+          {
+            xPercent: 0,
+            duration: 0.44,
+            ease: 'power3.inOut',
+          },
+          '-=0.34'
+        )
+        .to(
+          panel,
+          {
+            xPercent: 0,
+            duration: 0.44,
+            ease: 'power3.out',
+          },
+          '-=0.34'
+        )
+        .to(header, { opacity: 1, y: 0, duration: 0.22, ease: 'power2.out' }, '-=0.12')
+
+      if (menuBody) {
+        tl.to(
+          menuBody,
+          {
+            opacity: 1,
+            y: 0,
+            duration: 0.28,
+            ease: 'power2.out',
+          },
+          '-=0.08' // Fade in cleanly only as the panel arrives in place
+        )
+      }
+    } else if (mounted && !isClosingRef.current) {
+      handleClose()
+    }
+  }, [isOpen, mounted, position])
 
   const handleSelect = (val, item) => {
     if (item.isExternal) {
@@ -296,6 +302,7 @@ export default function StaggeredMenu({
     <div
       ref={containerRef}
       className={`sm-container sm-position-${position}`}
+      style={{ visibility: 'hidden' }}
       role="dialog"
       aria-modal="true"
       aria-label="Navigation menu"
@@ -304,6 +311,7 @@ export default function StaggeredMenu({
       <div
         ref={backdropRef}
         className="sm-backdrop"
+        style={{ opacity: 0 }}
         onClick={() => handleClose()}
         onTouchMove={e => e.preventDefault()}
         onWheel={e => e.preventDefault()}
@@ -337,7 +345,7 @@ export default function StaggeredMenu({
         }}
       >
         {/* Header */}
-        <div ref={headerRef} className="sm-header">
+        <div ref={headerRef} className="sm-header" style={{ opacity: 0 }}>
           <button
             className="sm-close-btn"
             onClick={() => handleClose()}
@@ -349,7 +357,7 @@ export default function StaggeredMenu({
         </div>
 
         {/* Branched Menu */}
-        <div ref={menuBodyRef} className="sm-branched-wrapper">
+        <div ref={menuBodyRef} className="sm-branched-wrapper" style={{ opacity: 0 }}>
           <BranchedMenu
             items={branchedItems}
             defaultOpen={[0, 1]}

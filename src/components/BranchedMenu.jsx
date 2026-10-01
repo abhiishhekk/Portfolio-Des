@@ -1,4 +1,4 @@
-import { isValidElement, useLayoutEffect, useRef, useState } from 'react';
+import { isValidElement, useLayoutEffect, useEffect, useRef, useState } from 'react';
 import './BranchedMenu.css';
 
 const PAD = 6;
@@ -43,6 +43,13 @@ export default function BranchedMenu({
     const first = items.find((it, i) => it.children && toSet(defaultOpen).has(i));
     return first?.children?.[0]?.value ?? '';
   });
+
+  useEffect(() => {
+    if (defaultActive) {
+      setActive(defaultActive);
+    }
+  }, [defaultActive]);
+
   const navRef = useRef(null);
   const heads = useRef([]);
   const markerRef = useRef(null);
