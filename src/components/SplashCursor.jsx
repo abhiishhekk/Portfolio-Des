@@ -3,12 +3,12 @@ import { useEffect, useRef } from 'react';
 
 function SplashCursor({
   SIM_RESOLUTION = 128,
-  DYE_RESOLUTION = 512,
-  CAPTURE_RESOLUTION = 256,
-  DENSITY_DISSIPATION = 4,
+  DYE_RESOLUTION = 1440,
+  CAPTURE_RESOLUTION = 512,
+  DENSITY_DISSIPATION = 3.5,
   VELOCITY_DISSIPATION = 2,
   PRESSURE = 0.1,
-  PRESSURE_ITERATIONS = 8,
+  PRESSURE_ITERATIONS = 20,
   CURL = 3,
   SPLAT_RADIUS = 0.2,
   SPLAT_FORCE = 6000,
@@ -16,8 +16,8 @@ function SplashCursor({
   COLOR_UPDATE_SPEED = 10,
   BACK_COLOR = { r: 0.5, g: 0, b: 0 },
   TRANSPARENT = true,
-  RAINBOW_MODE = false,
-  COLOR = '#ffffff',
+  RAINBOW_MODE = true,
+  COLOR = '#ff0000',
   zIndex = 50
 }) {
   const canvasRef = useRef(null);
@@ -27,21 +27,13 @@ function SplashCursor({
   useEffect(() => {
     if (configRef.current) {
       configRef.current.COLOR = COLOR;
+      configRef.current.RAINBOW_MODE = RAINBOW_MODE;
     }
-  }, [COLOR]);
+  }, [COLOR, RAINBOW_MODE]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-
-    // Only disable if user explicitly requested reduced motion in system settings
-    const prefersReducedMotion = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (prefersReducedMotion) return;
-
-    const isMobile = typeof window !== 'undefined' && (
-      window.matchMedia('(pointer: coarse)').matches ||
-      window.innerWidth <= 768
-    );
 
     // Track if the effect is still active for cleanup
     let isActive = true;
@@ -60,17 +52,17 @@ function SplashCursor({
     }
 
     let config = {
-      SIM_RESOLUTION: isMobile ? Math.min(SIM_RESOLUTION, 48) : SIM_RESOLUTION,
-      DYE_RESOLUTION: isMobile ? Math.min(DYE_RESOLUTION, 200) : DYE_RESOLUTION,
+      SIM_RESOLUTION,
+      DYE_RESOLUTION,
       CAPTURE_RESOLUTION,
       DENSITY_DISSIPATION,
       VELOCITY_DISSIPATION,
       PRESSURE,
-      PRESSURE_ITERATIONS: isMobile ? Math.min(PRESSURE_ITERATIONS, 3) : PRESSURE_ITERATIONS,
+      PRESSURE_ITERATIONS,
       CURL,
-      SPLAT_RADIUS: isMobile ? Math.max(SPLAT_RADIUS, 0.35) : SPLAT_RADIUS,
+      SPLAT_RADIUS,
       SPLAT_FORCE,
-      SHADING: isMobile ? false : SHADING,
+      SHADING,
       COLOR_UPDATE_SPEED,
       PAUSED: false,
       BACK_COLOR,
@@ -82,9 +74,9 @@ function SplashCursor({
 
     let pointers = [new pointerPrototype()];
 
-    const context = getWebGLContext(canvas);
-    if (!context) return;
-    const { gl, ext } = context;
+    const { gl, ext } = getWebGLContext(canvas);
+    if (!gl) return;
+
     if (!ext.supportLinearFiltering) {
       config.DYE_RESOLUTION = 256;
       config.SHADING = false;
@@ -101,7 +93,7 @@ function SplashCursor({
       let gl = canvas.getContext('webgl2', params);
       const isWebGL2 = !!gl;
       if (!isWebGL2) gl = canvas.getContext('webgl', params) || canvas.getContext('experimental-webgl', params);
-      if (!gl) return null;
+      if (!gl) return { gl: null, ext: {} };
 
       let halfFloat;
       let supportLinearFiltering;
@@ -314,8 +306,6 @@ function SplashCursor({
           return max(1.055 * pow(color, vec3(0.416666667)) - 0.055, vec3(0));
       }
 
-      uniform float uIsBlack;
-
       void main () {
           vec3 c = texture2D(uTexture, vUv).rgb;
           #ifdef SHADING
@@ -335,11 +325,7 @@ function SplashCursor({
           #endif
 
           float a = max(c.r, max(c.g, c.b));
-          if (uIsBlack > 0.5) {
-              gl_FragColor = vec4(vec3(0.0), a);
-          } else {
-              gl_FragColor = vec4(c, a);
-          }
+          gl_FragColor = vec4(c, a);
       }
     `;
 
@@ -705,43 +691,21 @@ function SplashCursor({
     let lastUpdateTime = Date.now();
     let colorUpdateTimer = 0.0;
 
-    let idleFrames = 0;
-
-    function ensureRunning() {
-      idleFrames = 0;
-      if (!animationFrameId.current && isActive && !document.hidden) {
-        lastUpdateTime = Date.now();
-        animationFrameId.current = requestAnimationFrame(updateFrame);
-      }
-    }
-
     function updateFrame() {
-      if (!isActive || document.hidden) {
-        animationFrameId.current = null;
-        return;
-      }
+      if (!isActive) return;
       const dt = calcDeltaTime();
       if (resizeCanvas()) initFramebuffers();
       updateColors(dt);
       applyInputs();
       step(dt);
       render(null);
-
-      idleFrames++;
-      // After ~180 frames (approx 3s of no pointer movement), fluid dye has fully dissipated.
-      // Pause RAF loop to eliminate idle CPU and GPU usage. It wakes instantly on any mouse/touch move.
-      if (idleFrames > 180) {
-        animationFrameId.current = null;
-        return;
-      }
-
       animationFrameId.current = requestAnimationFrame(updateFrame);
     }
 
     function calcDeltaTime() {
       let now = Date.now();
       let dt = (now - lastUpdateTime) / 1000;
-      dt = Math.min(Math.max(dt, 0.001), 0.033);
+      dt = Math.min(dt, 0.016666);
       lastUpdateTime = now;
       return dt;
     }
@@ -772,7 +736,6 @@ function SplashCursor({
         if (p.moved) {
           p.moved = false;
           splatPointer(p);
-          idleFrames = 0;
         }
       });
     }
@@ -853,10 +816,6 @@ function SplashCursor({
       displayMaterial.bind();
       if (config.SHADING) gl.uniform2f(displayMaterial.uniforms.texelSize, 1.0 / width, 1.0 / height);
       gl.uniform1i(displayMaterial.uniforms.uTexture, dye.read.attach(0));
-      if (displayMaterial.uniforms.uIsBlack !== undefined) {
-        const isBlack = !config.RAINBOW_MODE && (config.COLOR === '#000000' || config.COLOR === '#060505');
-        gl.uniform1f(displayMaterial.uniforms.uIsBlack, isBlack ? 1.0 : 0.0);
-      }
       blit(target);
     }
 
@@ -1021,7 +980,7 @@ function SplashCursor({
     }
 
     function scaleByPixelRatio(input) {
-      const pixelRatio = Math.min(window.devicePixelRatio || 1, 1.5);
+      const pixelRatio = window.devicePixelRatio || 1;
       return Math.floor(input * pixelRatio);
     }
 
@@ -1037,7 +996,6 @@ function SplashCursor({
 
     // Named event handlers for proper cleanup
     function handleMouseDown(e) {
-      ensureRunning();
       let pointer = pointers[0];
       let posX = scaleByPixelRatio(e.clientX);
       let posY = scaleByPixelRatio(e.clientY);
@@ -1047,13 +1005,11 @@ function SplashCursor({
 
     let firstMouseMoveHandled = false;
     function handleMouseMove(e) {
-      ensureRunning();
       let pointer = pointers[0];
       let posX = scaleByPixelRatio(e.clientX);
       let posY = scaleByPixelRatio(e.clientY);
       if (!firstMouseMoveHandled) {
         let color = generateColor();
-        updatePointerDownData(pointer, -1, posX, posY);
         updatePointerMoveData(pointer, posX, posY, color);
         firstMouseMoveHandled = true;
       } else {
@@ -1068,9 +1024,7 @@ function SplashCursor({
         let posX = scaleByPixelRatio(touches[i].clientX);
         let posY = scaleByPixelRatio(touches[i].clientY);
         updatePointerDownData(pointer, touches[i].identifier, posX, posY);
-        clickSplat(pointer);
       }
-      ensureRunning();
     }
 
     function handleTouchMove(e) {
@@ -1079,12 +1033,8 @@ function SplashCursor({
       for (let i = 0; i < touches.length; i++) {
         let posX = scaleByPixelRatio(touches[i].clientX);
         let posY = scaleByPixelRatio(touches[i].clientY);
-        if (!pointer.color || (pointer.color.r === 0 && pointer.color.g === 0 && pointer.color.b === 0)) {
-          pointer.color = generateColor();
-        }
         updatePointerMoveData(pointer, posX, posY, pointer.color);
       }
-      ensureRunning();
     }
 
     function handleTouchEnd(e) {
@@ -1095,39 +1045,14 @@ function SplashCursor({
       }
     }
 
-    function handleVisibilityChange() {
-      if (document.hidden) {
-        if (animationFrameId.current) {
-          cancelAnimationFrame(animationFrameId.current);
-          animationFrameId.current = null;
-        }
-      } else {
-        ensureRunning();
-      }
-    }
-
-    function handleResize() {
-      if (resizeCanvas()) {
-        initFramebuffers();
-      }
-    }
-
     // Add event listeners
     window.addEventListener('mousedown', handleMouseDown);
     window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('touchstart', handleTouchStart, { passive: true });
-    window.addEventListener('touchmove', handleTouchMove, { passive: true });
-    window.addEventListener('touchend', handleTouchEnd, { passive: true });
-    window.addEventListener('resize', handleResize);
-    window.addEventListener('orientationchange', handleResize);
-    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('touchstart', handleTouchStart);
+    window.addEventListener('touchmove', handleTouchMove, false);
+    window.addEventListener('touchend', handleTouchEnd);
 
-    // Initial canvas setup and start animation loop immediately
-    if (resizeCanvas()) initFramebuffers();
-    gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
-    gl.clearColor(0.0, 0.0, 0.0, 0.0);
-    gl.clear(gl.COLOR_BUFFER_BIT);
-    animationFrameId.current = requestAnimationFrame(updateFrame);
+    updateFrame();
 
     // Cleanup function
     return () => {
@@ -1145,9 +1070,6 @@ function SplashCursor({
       window.removeEventListener('touchstart', handleTouchStart);
       window.removeEventListener('touchmove', handleTouchMove);
       window.removeEventListener('touchend', handleTouchEnd);
-      window.removeEventListener('resize', handleResize);
-      window.removeEventListener('orientationchange', handleResize);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -1158,7 +1080,7 @@ function SplashCursor({
         position: 'fixed',
         top: 0,
         left: 0,
-        zIndex,
+        zIndex: zIndex,
         pointerEvents: 'none',
         width: '100%',
         height: '100%'

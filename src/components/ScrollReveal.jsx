@@ -95,32 +95,6 @@ const ScrollReveal = forwardRef(function ScrollReveal(
       return
     }
 
-    const isTouch =
-      typeof window !== 'undefined' &&
-      (window.matchMedia('(pointer: coarse)').matches ||
-        window.innerWidth <= 768 ||
-        'ontouchstart' in window)
-
-    // Native IntersectionObserver on mobile
-    if (isTouch) {
-      el.classList.add('mobile-reveal')
-      const observer = new IntersectionObserver(
-        (entries) => {
-          entries.forEach((entry) => {
-            if (entry.isIntersecting) {
-              entry.target.classList.add('is-revealed')
-              observer.unobserve(entry.target)
-            }
-          })
-        },
-        { rootMargin: '0px 0px -5% 0px', threshold: 0.1 }
-      )
-      observer.observe(el)
-      return () => {
-        observer.disconnect()
-      }
-    }
-
     const shouldBlur = enableBlur
     const effectiveRotation = baseRotation
     const effectiveStart = start
@@ -160,7 +134,7 @@ const ScrollReveal = forwardRef(function ScrollReveal(
             wordElements,
             {
               opacity: effectiveBaseOpacity,
-              y: isTouch ? 8 : 0,
+              y: 0,
               filter: shouldBlur ? `blur(${blurStrength}px)` : 'none',
             },
             {
@@ -169,7 +143,7 @@ const ScrollReveal = forwardRef(function ScrollReveal(
               y: 0,
               filter: shouldBlur ? 'blur(0px)' : 'none',
               stagger: {
-                each: isTouch ? 0.015 : 0.03,
+                each: 0.02,
                 ease: 'power1.inOut',
               },
               scrollTrigger: {
@@ -188,7 +162,7 @@ const ScrollReveal = forwardRef(function ScrollReveal(
           el,
           {
             opacity: effectiveBaseOpacity,
-            y: isTouch ? 12 : 0,
+            y: 0,
             filter: shouldBlur ? `blur(${blurStrength}px)` : 'none',
           },
           {
