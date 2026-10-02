@@ -177,8 +177,10 @@ export default function Preloader({
         }
       };
 
-      let lastProgressFloat = 0;
+      let targetProgressFloat = 0;
+      let renderedProgressFloat = 0;
       let lastDisplayInt = 0;
+      let lastFrameTime = performance.now();
 
       const tick = (now) => {
         if (isExitingRef.current) return;
@@ -187,78 +189,89 @@ export default function Preloader({
           pageLoaded = true;
         }
 
+        const dt = Math.min((now - lastFrameTime) / 1000, 0.05);
+        lastFrameTime = now;
+
         const elapsed = now - startTime;
-        let currentValFloat = 0;
+        let calculatedTarget = 0;
 
         if (!pageLoaded) {
           // Page is STILL loading:
-          // Loading check is now at 50%:
-          // 1. From 0 to 50%: smooth ease-out progression over 450ms
+          // Loading check is at 50%:
+          // 1. From 0 to 50%: smooth linear progression over 500ms
           // 2. Beyond 50%: DO NOT WAIT OR FREEZE AT 50!
-          //    Progresses very smoothly and continuously (subpixel fluid motion)
-          //    towards 99% using a smooth exponential deceleration curve:
-          //    50 + 49 * (1 - e^(-overTime / 2400))
-          if (elapsed <= 450) {
-            const ratio = elapsed / 450;
-            const ease = 1 - (1 - ratio) * (1 - ratio);
-            currentValFloat = ease * 50;
+          //    Progresses continuously towards 99% using an exponential asymptotic curve
+          if (elapsed <= 500) {
+            calculatedTarget = (elapsed / 500) * 50;
           } else {
-            const overTime = elapsed - 450;
-            // Continuous asymptotic growth from 50 towards 99:
-            // Fluid on every single frame, capped strictly at 99.2
-            const continuousPast50 = 49 * (1 - Math.exp(-overTime / 2400));
-            currentValFloat = Math.min(50 + continuousPast50, 99.2);
+            const overTime = elapsed - 500;
+            // Asymptotically approaches 99 smoothly
+            const past50 = 49 * (1 - Math.exp(-overTime / 2600));
+            calculatedTarget = Math.min(50 + past50, 99.2);
           }
         } else {
           // Page IS completely loaded:
           if (finishStartTime === null) {
             finishStartTime = now;
-            finishStartProgress = lastProgressFloat;
+            finishStartProgress = targetProgressFloat;
           }
 
           if (finishStartProgress < 50 && elapsed < normalDuration) {
             // Page loaded early (before 50%):
-            // Glide smoothly from 0 to 100 at natural pace over normalDuration (no slowdown at 50)
+            // Glide smoothly from 0 to 100 at natural pace over normalDuration
             const ratio = Math.min(elapsed / normalDuration, 1);
-            const ease = ratio < 0.5 ? 2 * ratio * ratio : 1 - Math.pow(-2 * ratio + 2, 2) / 2;
-            currentValFloat = ease * 100;
+            calculatedTarget = ratio * 100;
           } else {
-            // Page finished loading while waiting past 50 (e.g. at 52%, 67%, 85%, etc.)
-            // or after normalDuration:
+            // Page finished loading while waiting past 50 (or after normalDuration):
             // Seamlessly and smoothly complete the remaining distance to 100 at its natural pace
             const remaining = Math.max(0.5, 100 - finishStartProgress);
             const finishDuration = Math.min(320, Math.max(180, remaining * 5));
             const finishElapsed = now - finishStartTime;
             const finishRatio = Math.min(finishElapsed / finishDuration, 1);
-            // Smooth cubic ease-out to 100
-            const easeOut = 1 - Math.pow(1 - finishRatio, 3);
-            currentValFloat = Math.min(finishStartProgress + easeOut * remaining, 100);
+            const easeOut = 1 - Math.pow(1 - finishRatio, 2.5);
+            calculatedTarget = Math.min(finishStartProgress + easeOut * remaining, 100);
           }
         }
 
-        // Strictly monotonic forward progress
-        lastProgressFloat = Math.max(lastProgressFloat, currentValFloat);
-
-        // Strict guarantee: CANNOT reach 100 until page is completely loaded
-        if (!pageLoaded && lastProgressFloat >= 100) {
-          lastProgressFloat = 99.2;
+        // Strictly monotonic target
+        targetProgressFloat = Math.max(targetProgressFloat, calculatedTarget);
+        if (!pageLoaded && targetProgressFloat >= 100) {
+          targetProgressFloat = 99.2;
         }
 
-        const displayInt = Math.min(Math.floor(lastProgressFloat), pageLoaded ? 100 : 99);
+        // CONTINUOUS DAMPED INTERPOLATION (SMOOTH ORGANIC GROWTH):
+        // Rather than jumping directly when advancing 1 percent, rendered progress
+        // grows softly and continuously into each new value with subpixel fluid damping
+        const lerpFactor = 1 - Math.exp(-9.0 * dt);
+        renderedProgressFloat += (targetProgressFloat - renderedProgressFloat) * lerpFactor;
+        renderedProgressFloat = Math.max(renderedProgressFloat, 0);
+
+        // Strict guarantee: CANNOT reach 100 until page is completely loaded
+        if (!pageLoaded && renderedProgressFloat >= 99.5) {
+          renderedProgressFloat = 99.2;
+        }
+
+        // Completion check: 100% loaded and rendered width has caught up
+        const isComplete = pageLoaded && targetProgressFloat >= 99.9 && (100 - renderedProgressFloat) <= 0.2;
+        if (isComplete) {
+          renderedProgressFloat = 100;
+        }
+
+        const displayInt = Math.min(Math.floor(renderedProgressFloat), pageLoaded ? 100 : 99);
         lastDisplayInt = Math.max(lastDisplayInt, displayInt);
 
         // TIGHT SYNCHRONOUS COUPLING:
-        // Progress bar width is updated with floating-point subpixel precision on every frame
-        // so it glides with continuous silky smoothness even when loading takes longer
+        // Progress bar width is written with 3-decimal subpixel precision on every frame
+        // so the bar physically grows like liquid rather than advancing directly
         if (progressBarRef.current) {
-          progressBarRef.current.style.width = `${lastProgressFloat}%`;
+          progressBarRef.current.style.width = `${renderedProgressFloat.toFixed(3)}%`;
         }
         if (counterNumRef.current) {
           counterNumRef.current.textContent = String(lastDisplayInt);
         }
         setProgress(lastDisplayInt);
 
-        if (lastProgressFloat < 100 || !pageLoaded) {
+        if (!isComplete) {
           rafId = requestAnimationFrame(tick);
         } else {
           // Hit 100% AND page is 100% loaded: brief pause (100ms) then slide curtain up to reveal site
