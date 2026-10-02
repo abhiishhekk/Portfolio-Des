@@ -2,6 +2,14 @@
 .framer-preloader-root {
   position: fixed;
   inset: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100vw;
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
   z-index: 999999;
   overflow: hidden;
   pointer-events: auto;
@@ -28,10 +36,12 @@
 /* Fullscreen panels that slide / push vertically with seamless overlap */
 .preloader-panel {
   position: absolute;
-  top: -3px;
+  top: 0;
   left: 0;
   width: 100vw;
-  height: calc(100vh + 8px);
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -43,10 +53,15 @@
   color: var(--preloader-panel-fg);
 }
 
-/* Panel 1: Greeting - Immediately visible on mount */
+/* Panel 1: Greeting - Immediately visible on mount, perfectly centered in 100dvh */
 .preloader-panel-greeting {
   z-index: 10;
   visibility: visible;
+  height: 100vh;
+  height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .panel-greeting-inner {
@@ -55,8 +70,10 @@
   align-items: center;
   justify-content: center;
   text-align: center;
-  padding: clamp(24px, 5vw, 64px);
+  padding: clamp(20px, 4vw, 56px);
   max-width: 1000px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .preloader-greeting-text {
@@ -101,11 +118,17 @@
   visibility: hidden;
   pointer-events: none;
   position: absolute;
-  inset: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   width: 100vw;
-  height: calc(100vh + 2px);
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
   padding: 0;
   box-sizing: border-box;
+  overflow: visible;
 }
 
 /* Organic curved lower hem that bows downward as the preloader curtain rises */
@@ -114,6 +137,7 @@
   top: 99.5%;
   left: 0;
   width: 100vw;
+  width: 100%;
   height: clamp(60px, 10vw, 150px);
   pointer-events: none;
   overflow: visible;
@@ -124,13 +148,14 @@
   fill: var(--preloader-panel-bg);
 }
 
-/* Progress bar positioned at exact vertical center, spanning edge-to-edge from complete left to complete right */
+/* Progress bar positioned at EXACT vertical center of 100dvh, spanning edge-to-edge */
 .loader-bar-track {
   position: absolute;
   top: 50%;
   left: 0;
   right: 0;
   width: 100vw;
+  width: 100%;
   height: clamp(4px, 0.55vw, 6px);
   transform: translateY(-50%);
   -webkit-transform: translateY(-50%);
@@ -169,15 +194,15 @@
   background-color: #0a0a0a;
 }
 
-/* Right Bottom Corner: Only the percentage counter */
+/* Right Bottom Corner: Percentage counter with dvh and safe-area support */
 .loader-bottom-bar {
   position: absolute;
-  bottom: clamp(20px, 4vw, 44px);
+  bottom: clamp(24px, 4.5dvh, 48px);
   right: clamp(20px, 4vw, 52px);
   display: flex;
   align-items: baseline;
   justify-content: flex-end;
-  z-index: 10;
+  z-index: 30;
   pointer-events: none;
   margin: 0;
   padding: 0;
@@ -197,7 +222,7 @@
 
 .loader-counter-num {
   font-family: 'Syne', -apple-system, BlinkMacSystemFont, sans-serif;
-  font-size: clamp(5rem, 14vw, 10.5rem);
+  font-size: clamp(4.5rem, 13vw, 10rem);
   font-weight: 800;
   letter-spacing: -0.05em;
   line-height: 0.88;
@@ -216,15 +241,16 @@
 
 @media (max-width: 768px) {
   .preloader-greeting-text {
-    font-size: clamp(2.4rem, 10vw, 4.2rem);
+    font-size: clamp(2.4rem, 9.5vw, 4rem);
   }
 
-  /* Precise smartphone corner alignment with zero excessive gap */
+  /* Precise smartphone corner alignment with safe-area and dvh support */
   .loader-bottom-bar {
-    right: 14px;
-    bottom: 22px;
+    right: calc(16px + env(safe-area-inset-right, 0px));
+    bottom: calc(24px + env(safe-area-inset-bottom, 0px));
     padding: 0;
     margin: 0;
+    z-index: 30;
   }
 
   .loader-counter-wrap {
@@ -234,13 +260,13 @@
   }
 
   .loader-counter-num {
-    font-size: clamp(4rem, 18vw, 6.5rem);
+    font-size: clamp(3.8rem, 16vw, 5.8rem);
     letter-spacing: -0.04em;
     line-height: 0.85;
   }
 
   .loader-counter-unit {
-    font-size: clamp(1.5rem, 5.5vw, 2.2rem);
+    font-size: clamp(1.4rem, 5vw, 2rem);
     margin-left: 1px;
   }
 }
