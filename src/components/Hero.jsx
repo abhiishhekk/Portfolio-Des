@@ -7,8 +7,7 @@ import { useLeetCode } from '../hooks/useLeetCode'
 const ROLES = [
   'Full-Stack Developer',
   'Competitive Programmer',
-  'Problem Solver',
-  'CS @ NIT Allahabad',
+  'CSE Undergrad @ NIT Allahabad',
 ]
 
 export default function Hero({ isPageVisible = true }) {
@@ -88,7 +87,7 @@ export default function Hero({ isPageVisible = true }) {
             className="hero-animated-block"
           >
             <p className="hero-subtitle">
-              CS undergrad at{' '}
+              CSE undergrad at{' '}
               <strong style={{ color: 'var(--fg)', fontWeight: 600 }}>NIT Allahabad</strong> — solved{' '}
               {leetCode.totalSolved}+ problems on LeetCode, building scalable full-stack apps and competing in
               algorithmic challenges.

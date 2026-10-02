@@ -1,0 +1,48 @@
+.apple-hello-stage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: clamp(100px, 20vw, 200px);
+  position: relative;
+  overflow: visible;
+  user-select: none;
+}
+
+.apple-hello-svg {
+  display: block;
+  margin: 0 auto;
+  width: auto;
+  max-width: min(88vw, 680px);
+  height: auto;
+  max-height: clamp(80px, 15vh, 160px);
+  color: var(--preloader-panel-fg, currentColor);
+  stroke: var(--preloader-panel-fg, currentColor);
+  filter: drop-shadow(0 2px 12px rgba(0, 0, 0, 0.08));
+}
+
+.theme-dark .apple-hello-svg,
+[data-theme="dark"] .apple-hello-svg {
+  color: #ffffff;
+  stroke: #ffffff;
+  filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.15));
+}
+
+.theme-light .apple-hello-svg,
+[data-theme="light"] .apple-hello-svg {
+  color: #0a0a0a;
+  stroke: #0a0a0a;
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.06));
+}
+
+@media (max-width: 768px) {
+  .apple-hello-stage {
+    height: clamp(80px, 25vw, 140px);
+  }
+
+  .apple-hello-svg {
+    max-width: 90vw;
+    max-height: clamp(65px, 16vh, 110px);
+    stroke-width: 16px;
+  }
+}

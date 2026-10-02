@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import gsap from 'gsap';
-import AnimatedContent from './AnimatedContent';
+import AppleHelloLanguages from './AppleHelloLanguages';
 import { lockScroll, unlockScroll } from '../utils/scrollLock';
 import './Preloader.css';
 
@@ -25,13 +25,21 @@ export default function Preloader({
   const curvePathRef = useRef(null);
 
   const [progress, setProgress] = useState(0);
+  const [isPageLoaded, setIsPageLoaded] = useState(
+    typeof document !== 'undefined' && document.readyState === 'complete'
+  );
 
   const onExitStartRef = useRef(onExitStart);
   onExitStartRef.current = onExitStart;
   const onCompleteRef = useRef(onComplete);
   onCompleteRef.current = onComplete;
 
+  const isPushingRef = useRef(false);
   const isExitingRef = useRef(false);
+  const pageLoadedRef = useRef(isPageLoaded);
+  pageLoadedRef.current = isPageLoaded;
+
+  const startProgressCounterRef = useRef(null);
 
   // Trigger the final slide-up exit revealing the site beneath
   const triggerFinalExit = useCallback(() => {
@@ -52,9 +60,6 @@ export default function Preloader({
       container.style.pointerEvents = 'none';
     }
 
-    const windowH = typeof window !== 'undefined' ? window.innerHeight : 900;
-    const curveHeight = Math.max(140, Math.round(windowH * 0.16));
-
     const tl = gsap.timeline({
       onComplete: () => {
         unlockScroll();
@@ -66,7 +71,6 @@ export default function Preloader({
     });
 
     // Fade out percentage counter and progress bar immediately
-    // so they disappear right as the preloader curtain starts getting pushed above
     tl.to(
       ['.loader-bottom-bar', '.loader-bar-track'],
       {
@@ -78,7 +82,6 @@ export default function Preloader({
     );
 
     // Slide the loader panel completely up past the top of the viewport like a rising curtain
-    // (-125% ensures the panel and the downward curved hem clear the screen completely)
     if (loaderPanel) {
       tl.to(
         loaderPanel,
@@ -116,66 +119,107 @@ export default function Preloader({
     }
   }, []);
 
-  useEffect(() => {
-    lockScroll({ forceTop: true });
+  // Trigger push transition from multi-language greeting to percentage loader
+  const triggerPushTransition = useCallback(() => {
+    if (isPushingRef.current || isExitingRef.current) return;
+    isPushingRef.current = true;
 
     const greetingPanel = greetingPanelRef.current;
     const loaderPanel = loaderPanelRef.current;
 
     if (!greetingPanel || !loaderPanel) return;
 
-    // Initial setup:
-    // Greeting panel is visible (0%), Loader panel is explicitly hidden and 100% down
-    gsap.set(greetingPanel, { yPercent: 0, visibility: 'visible', force3D: true });
-    gsap.set(loaderPanel, { yPercent: 100, visibility: 'hidden', force3D: true });
+    gsap.set(loaderPanel, { visibility: 'visible', yPercent: 100 });
+
+    const pushTimeline = gsap.timeline({
+      onStart: () => {
+        if (startProgressCounterRef.current) {
+          startProgressCounterRef.current();
+        }
+      },
+    });
+
+    pushTimeline.to(
+      greetingPanel,
+      {
+        yPercent: -100,
+        duration: 0.85,
+        ease: 'cubic-bezier(0.76, 0, 0.24, 1)',
+        force3D: true,
+      },
+      0
+    );
+
+    pushTimeline.to(
+      loaderPanel,
+      {
+        yPercent: 0,
+        duration: 0.85,
+        ease: 'cubic-bezier(0.76, 0, 0.24, 1)',
+        force3D: true,
+      },
+      0
+    );
+  }, []);
+
+  // Called when all 4 languages finish a complete cycle
+  const handleCycleComplete = useCallback(({ isPageLoaded: loaded }) => {
+    if (loaded || pageLoadedRef.current) {
+      triggerPushTransition();
+    }
+  }, [triggerPushTransition]);
+
+  // Called when any individual word finishes writing
+  const handleWordComplete = useCallback(({ cycleCount }) => {
+    // If we've already done at least 1 full cycle and page is loaded, transition gracefully
+    if (cycleCount >= 1 && pageLoadedRef.current) {
+      triggerPushTransition();
+    }
+  }, [triggerPushTransition]);
+
+  useEffect(() => {
+    lockScroll({ forceTop: true });
+
+    const greetingPanel = greetingPanelRef.current;
+    const loaderPanel = loaderPanelRef.current;
+
+    if (greetingPanel && loaderPanel) {
+      gsap.set(greetingPanel, { yPercent: 0, visibility: 'visible', force3D: true });
+      gsap.set(loaderPanel, { yPercent: 100, visibility: 'hidden', force3D: true });
+    }
 
     let rafId = null;
-    let pushTimeline = null;
     let progressStarted = false;
-    let cleanupLoadListeners = null;
+
+    // Page-load tracking
+    const markLoaded = () => {
+      setIsPageLoaded(true);
+      pageLoadedRef.current = true;
+    };
+
+    if (typeof document !== 'undefined' && document.readyState === 'complete') {
+      markLoaded();
+    } else if (typeof window !== 'undefined') {
+      window.addEventListener('load', markLoaded, { once: true });
+      if (typeof document !== 'undefined') {
+        document.addEventListener('readystatechange', () => {
+          if (document.readyState === 'complete') markLoaded();
+        });
+        if (document.fonts?.ready) {
+          document.fonts.ready.then(markLoaded).catch(markLoaded);
+        }
+      }
+    }
 
     // Start counting from 0% to 100%
     const startProgressCounter = () => {
       if (progressStarted || isExitingRef.current) return;
       progressStarted = true;
 
-      const normalDuration = 1200; // Snappy, smooth 1.2s progression
+      const normalDuration = 1000;
       const startTime = performance.now();
       let finishStartTime = null;
       let finishStartProgress = 0;
-
-      // Reliable page-load detection:
-      // In modern browsers, document.readyState === 'complete' signals that HTML,
-      // CSS stylesheets, fonts, and eager bundles are completely loaded.
-      let pageLoaded = typeof document !== 'undefined' && document.readyState === 'complete';
-
-      const markLoaded = () => {
-        pageLoaded = true;
-      };
-
-      if (!pageLoaded && typeof window !== 'undefined') {
-        window.addEventListener('load', markLoaded, { once: true });
-        if (typeof document !== 'undefined') {
-          document.addEventListener('readystatechange', () => {
-            if (document.readyState === 'complete') markLoaded();
-          });
-          if (document.fonts?.ready) {
-            document.fonts.ready.then(markLoaded).catch(markLoaded);
-          }
-        }
-      }
-
-      // Safety timeout: portfolio never stays blocked if an external script/font stalls
-      const safetyTimer = setTimeout(() => {
-        markLoaded();
-      }, 4000);
-
-      cleanupLoadListeners = () => {
-        clearTimeout(safetyTimer);
-        if (typeof window !== 'undefined') {
-          window.removeEventListener('load', markLoaded);
-        }
-      };
 
       let targetProgressFloat = 0;
       let renderedProgressFloat = 0;
@@ -185,45 +229,31 @@ export default function Preloader({
       const tick = (now) => {
         if (isExitingRef.current) return;
 
-        if (!pageLoaded && typeof document !== 'undefined' && document.readyState === 'complete') {
-          pageLoaded = true;
-        }
-
+        const isCurrentlyLoaded = pageLoadedRef.current;
         const dt = Math.min((now - lastFrameTime) / 1000, 0.05);
         lastFrameTime = now;
 
         const elapsed = now - startTime;
         let calculatedTarget = 0;
 
-        if (!pageLoaded) {
-          // Page is STILL loading:
-          // Loading check is at 50%:
-          // 1. From 0 to 50%: smooth linear progression over 500ms
-          // 2. Beyond 50%: DO NOT WAIT OR FREEZE AT 50!
-          //    Progresses continuously towards 99% using an exponential asymptotic curve
+        if (!isCurrentlyLoaded) {
           if (elapsed <= 500) {
             calculatedTarget = (elapsed / 500) * 50;
           } else {
             const overTime = elapsed - 500;
-            // Asymptotically approaches 99 smoothly
             const past50 = 49 * (1 - Math.exp(-overTime / 2600));
             calculatedTarget = Math.min(50 + past50, 99.2);
           }
         } else {
-          // Page IS completely loaded:
           if (finishStartTime === null) {
             finishStartTime = now;
             finishStartProgress = targetProgressFloat;
           }
 
           if (finishStartProgress < 50 && elapsed < normalDuration) {
-            // Page loaded early (before 50%):
-            // Glide smoothly from 0 to 100 at natural pace over normalDuration
             const ratio = Math.min(elapsed / normalDuration, 1);
             calculatedTarget = ratio * 100;
           } else {
-            // Page finished loading while waiting past 50 (or after normalDuration):
-            // Seamlessly and smoothly complete the remaining distance to 100 at its natural pace
             const remaining = Math.max(0.5, 100 - finishStartProgress);
             const finishDuration = Math.min(320, Math.max(180, remaining * 5));
             const finishElapsed = now - finishStartTime;
@@ -233,36 +263,27 @@ export default function Preloader({
           }
         }
 
-        // Strictly monotonic target
         targetProgressFloat = Math.max(targetProgressFloat, calculatedTarget);
-        if (!pageLoaded && targetProgressFloat >= 100) {
+        if (!isCurrentlyLoaded && targetProgressFloat >= 100) {
           targetProgressFloat = 99.2;
         }
 
-        // CONTINUOUS DAMPED INTERPOLATION (SMOOTH ORGANIC GROWTH):
-        // Rather than jumping directly when advancing 1 percent, rendered progress
-        // grows softly and continuously into each new value with subpixel fluid damping
         const lerpFactor = 1 - Math.exp(-9.0 * dt);
         renderedProgressFloat += (targetProgressFloat - renderedProgressFloat) * lerpFactor;
         renderedProgressFloat = Math.max(renderedProgressFloat, 0);
 
-        // Strict guarantee: CANNOT reach 100 until page is completely loaded
-        if (!pageLoaded && renderedProgressFloat >= 99.5) {
+        if (!isCurrentlyLoaded && renderedProgressFloat >= 99.5) {
           renderedProgressFloat = 99.2;
         }
 
-        // Completion check: 100% loaded and rendered width has caught up
-        const isComplete = pageLoaded && targetProgressFloat >= 99.9 && (100 - renderedProgressFloat) <= 0.2;
+        const isComplete = isCurrentlyLoaded && targetProgressFloat >= 99.9 && (100 - renderedProgressFloat) <= 0.2;
         if (isComplete) {
           renderedProgressFloat = 100;
         }
 
-        const displayInt = Math.min(Math.floor(renderedProgressFloat), pageLoaded ? 100 : 99);
+        const displayInt = Math.min(Math.floor(renderedProgressFloat), isCurrentlyLoaded ? 100 : 99);
         lastDisplayInt = Math.max(lastDisplayInt, displayInt);
 
-        // TIGHT SYNCHRONOUS COUPLING:
-        // Progress bar width is written with 3-decimal subpixel precision on every frame
-        // so the bar physically grows like liquid rather than advancing directly
         if (progressBarRef.current) {
           progressBarRef.current.style.width = `${renderedProgressFloat.toFixed(3)}%`;
         }
@@ -274,7 +295,6 @@ export default function Preloader({
         if (!isComplete) {
           rafId = requestAnimationFrame(tick);
         } else {
-          // Hit 100% AND page is 100% loaded: brief pause (100ms) then slide curtain up to reveal site
           setTimeout(() => {
             triggerFinalExit();
           }, 100);
@@ -284,63 +304,31 @@ export default function Preloader({
       rafId = requestAnimationFrame(tick);
     };
 
-    // Flow Step 1: Greeting animates in smoothly via unified AnimatedContent, holds comfortably
-    // Flow Step 2: Push transition where greeting goes UP and loader percentage pushes UP from down
-    const pushTimer = setTimeout(() => {
-      // Make loader visible before animating up
-      gsap.set(loaderPanel, { visibility: 'visible', yPercent: 100 });
+    startProgressCounterRef.current = startProgressCounter;
 
-      pushTimeline = gsap.timeline({
-        onStart: () => {
-          // Start counting as the panel pushes up
-          startProgressCounter();
-        },
-      });
+    // Safety timeout: automatically transition after max 14s even if network is slow
+    const safetyTimer = setTimeout(() => {
+      markLoaded();
+      triggerPushTransition();
+    }, 14000);
 
-      // Simultaneous vertical curtain push:
-      // Greeting panel slides up out of screen (-100%)
-      // Loader panel slides up from below into view (0%)
-      pushTimeline.to(
-        greetingPanel,
-        {
-          yPercent: -100,
-          duration: 0.85,
-          ease: 'cubic-bezier(0.76, 0, 0.24, 1)',
-          force3D: true,
-        },
-        0
-      );
-
-      pushTimeline.to(
-        loaderPanel,
-        {
-          yPercent: 0,
-          duration: 0.85,
-          ease: 'cubic-bezier(0.76, 0, 0.24, 1)',
-          force3D: true,
-        },
-        0
-      );
-    }, 1800);
+    // Keyboard shortcut (Space, Enter, Esc) to skip intro quickly
+    const handleKeyDown = (e) => {
+      if (['Space', 'Enter', 'Escape'].includes(e.code) || e.key === ' ' || e.key === 'Enter') {
+        markLoaded();
+        triggerPushTransition();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
 
     return () => {
-      clearTimeout(pushTimer);
+      clearTimeout(safetyTimer);
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('load', markLoaded);
       if (rafId) cancelAnimationFrame(rafId);
-      cleanupLoadListeners?.();
-      pushTimeline?.kill();
       unlockScroll();
     };
-  }, [triggerFinalExit]);
-
-  const [isFontReady, setIsFontReady] = useState(false);
-
-  useEffect(() => {
-    if (typeof document !== 'undefined' && document.fonts) {
-      document.fonts.ready.then(() => setIsFontReady(true)).catch(() => setIsFontReady(true));
-    } else {
-      setIsFontReady(true);
-    }
-  }, []);
+  }, [triggerFinalExit, triggerPushTransition]);
 
   return (
     <div
@@ -349,31 +337,20 @@ export default function Preloader({
       data-theme={currentTheme}
       aria-label="Loading portfolio"
       role="status"
+      onClick={triggerPushTransition}
+      style={{ cursor: 'pointer' }}
     >
-      {/* 1st: Theme-aware Name Greeting Panel with unified butter-smooth AnimatedContent */}
+      {/* 1st: Theme-aware Apple Hello Multi-Language Greeting Panel */}
       <div
         ref={greetingPanelRef}
         className="preloader-panel preloader-panel-greeting"
       >
         <div className="panel-greeting-inner">
-          {isFontReady && (
-            <AnimatedContent
-              direction="vertical"
-              distance={24}
-              duration={0.85}
-              ease="sine.out"
-              scrollTrigger={false}
-              animateOpacity={true}
-              initialOpacity={0}
-              delay={0.04}
-              style={{ willChange: 'transform, opacity' }}
-            >
-              <h1 className="preloader-greeting-text" aria-label="Hello, I am Abhishek">
-                <span className="greeting-prefix">Hello, I am</span>
-                <span className="greeting-name">Abhishek</span>
-              </h1>
-            </AnimatedContent>
-          )}
+          <AppleHelloLanguages
+            isPageLoaded={isPageLoaded}
+            onCycleComplete={handleCycleComplete}
+            onWordComplete={handleWordComplete}
+          />
         </div>
       </div>
 

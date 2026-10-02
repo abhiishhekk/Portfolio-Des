@@ -28,7 +28,7 @@ export default function About() {
 
             <FadeContent delay={0.2}>
               <p className="about-bio" style={{ marginTop: '20px' }}>
-                CS undergrad at NIT Allahabad specializing in{' '}
+                CSE undergrad at NIT Allahabad specializing in{' '}
                 <strong>concurrent systems in C</strong> and{' '}
                 <strong>full-stack MERN development</strong>. Built <strong>ProcTrace</strong>, a
                 real-time Linux telemetry tool, and solved{' '} over {' '}
