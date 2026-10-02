@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useRef } from 'react'
 import { useTheme } from './hooks/useTheme'
 import { useSmoothScroll } from './hooks/useSmoothScroll'
 import SplashCursor from './components/SplashCursor'
@@ -22,14 +22,15 @@ export default function App() {
   useSmoothScroll()
   const [isPreloaderMounted, setIsPreloaderMounted] = useState(true)
   const [isPageVisible, setIsPageVisible] = useState(false)
-
   const handleExitStart = useCallback(() => {
     setIsPageVisible(true)
-    setTimeout(() => ScrollTrigger.refresh(), 100)
   }, [])
   const handleComplete = useCallback(() => {
     setIsPreloaderMounted(false)
-    setTimeout(() => ScrollTrigger.refresh(), 150)
+    setTimeout(() => {
+      window.dispatchEvent(new Event('resize'))
+      ScrollTrigger.refresh()
+    }, 50)
   }, [])
 
   return (
@@ -43,11 +44,11 @@ export default function App() {
       )}
 
       <div
+        id="portfolio-app-root"
         className="portfolio-app-root"
         style={{
-          opacity: isPageVisible ? 1 : 0,
-          transition: 'opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1)',
-          pointerEvents: isPageVisible ? 'auto' : 'none',
+          opacity: 1,
+          pointerEvents: isPreloaderMounted ? 'none' : 'auto',
           minHeight: '100vh',
         }}
       >

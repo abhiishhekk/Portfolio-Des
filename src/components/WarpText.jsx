@@ -288,6 +288,7 @@ export default function WarpText({
 
     if (contextRef.current) {
       syncUniforms(contextRef.current.program, propsRef.current)
+      contextRef.current.resize?.(true)
       contextRef.current.rasterize()
       if (isPageVisible) {
         contextRef.current.resumeLoop?.()
@@ -404,17 +405,23 @@ export default function WarpText({
     let lastWidth = 0
     let lastHeight = 0
 
+    const getDimensions = () => {
+      const w = Math.round(container.clientWidth || container.offsetWidth || container.getBoundingClientRect()?.width || 0)
+      const h = Math.round(container.clientHeight || container.offsetHeight || container.getBoundingClientRect()?.height || 0)
+      return { w, h }
+    }
+
     const rasterize = () => {
       if (disposed || contextLost) return
 
-      const rect = container.getBoundingClientRect()
-      if (rect.width <= 0 || rect.height <= 0) return
+      const { w, h } = getDimensions()
+      if (w <= 0 || h <= 0) return
 
       const dpr = Math.min(window.devicePixelRatio || 1, 1.5)
       const textCanvas = buildTextCanvas({
         container,
-        width: rect.width,
-        height: rect.height,
+        width: w,
+        height: h,
         dpr,
         props: propsRef.current,
       })
@@ -423,19 +430,17 @@ export default function WarpText({
       renderOnce()
     }
 
-    const resize = () => {
+    const resize = (force = false) => {
       if (disposed || contextLost) return
-      const rect = container.getBoundingClientRect()
-      if (rect.width <= 0 || rect.height <= 0) return
+      const { w, h } = getDimensions()
+      if (w <= 0 || h <= 0) return
 
-      const w = Math.round(rect.width)
-      const h = Math.round(rect.height)
-      if (w === lastWidth && h === lastHeight) return
+      if (!force && w === lastWidth && h === lastHeight) return
       lastWidth = w
       lastHeight = h
 
       renderer.dpr = Math.min(window.devicePixelRatio || 1, 1.5)
-      renderer.setSize(rect.width, rect.height)
+      renderer.setSize(w, h)
       program.uniforms.uResolution.value[0] = gl.drawingBufferWidth
       program.uniforms.uResolution.value[1] = gl.drawingBufferHeight
       rasterize()
@@ -572,15 +577,16 @@ export default function WarpText({
     canvas.addEventListener('pointercancel', onPointerCancel)
     canvas.addEventListener('webglcontextlost', onContextLost, false)
     document.addEventListener('visibilitychange', onVisibility)
-    mediaQuery?.addEventListener('change', onReducedMotion)
+    const onWindowResize = () => resize(true)
+    window.addEventListener('resize', onWindowResize)
 
     syncUniforms(program, propsRef.current)
-    contextRef.current = { program, rasterize, resumeLoop }
-    resize()
+    contextRef.current = { program, rasterize, resize, resumeLoop }
+    resize(true)
     if (document.fonts?.ready) {
       document.fonts.ready.then(() => {
         if (!disposed && !contextLost) {
-          resize()
+          resize(true)
           rasterize()
         }
       })
@@ -592,6 +598,7 @@ export default function WarpText({
       contextRef.current = null
       if (raf) cancelAnimationFrame(raf)
       raf = 0
+      window.removeEventListener('resize', onWindowResize)
       resizeObserver?.disconnect()
       intersectionObserver?.disconnect()
       themeObserver?.disconnect()
