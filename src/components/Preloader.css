@@ -95,7 +95,8 @@
 
 .greeting-prefix {
   display: block;
-  opacity: 0.9;
+  color: inherit;
+  font-weight: 700;
   -webkit-font-smoothing: antialiased;
 }
 

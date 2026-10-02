@@ -332,6 +332,16 @@ export default function Preloader({
     };
   }, [triggerFinalExit]);
 
+  const [isFontReady, setIsFontReady] = useState(false);
+
+  useEffect(() => {
+    if (typeof document !== 'undefined' && document.fonts) {
+      document.fonts.ready.then(() => setIsFontReady(true)).catch(() => setIsFontReady(true));
+    } else {
+      setIsFontReady(true);
+    }
+  }, []);
+
   return (
     <div
       ref={containerRef}
@@ -346,22 +356,24 @@ export default function Preloader({
         className="preloader-panel preloader-panel-greeting"
       >
         <div className="panel-greeting-inner">
-          <AnimatedContent
-            direction="vertical"
-            distance={26}
-            duration={0.75}
-            ease="power2.out"
-            scrollTrigger={false}
-            animateOpacity={true}
-            initialOpacity={0}
-            delay={0.06}
-            style={{ willChange: 'transform, opacity' }}
-          >
-            <h1 className="preloader-greeting-text" aria-label="Hello, I am Abhishek">
-              <span className="greeting-prefix">Hello, I am</span>
-              <span className="greeting-name">Abhishek</span>
-            </h1>
-          </AnimatedContent>
+          {isFontReady && (
+            <AnimatedContent
+              direction="vertical"
+              distance={24}
+              duration={0.85}
+              ease="sine.out"
+              scrollTrigger={false}
+              animateOpacity={true}
+              initialOpacity={0}
+              delay={0.04}
+              style={{ willChange: 'transform, opacity' }}
+            >
+              <h1 className="preloader-greeting-text" aria-label="Hello, I am Abhishek">
+                <span className="greeting-prefix">Hello, I am</span>
+                <span className="greeting-name">Abhishek</span>
+              </h1>
+            </AnimatedContent>
+          )}
         </div>
       </div>
 
