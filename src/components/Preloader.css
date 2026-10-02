@@ -53,15 +53,42 @@
   color: var(--preloader-panel-fg);
 }
 
-/* Panel 1: Greeting - Immediately visible on mount, perfectly centered in 100dvh */
-.preloader-panel-greeting {
+/* Panel 1: Percentage Counter & Progress Bar - Immediately visible on mount */
+.preloader-panel-loader {
   z-index: 10;
   visibility: visible;
+  pointer-events: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100vw;
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  padding: 0;
+  box-sizing: border-box;
+  overflow: visible;
+}
+
+/* Panel 2: Greeting - Hidden initially below, pushes up after loader reaches 100% */
+.preloader-panel-greeting {
+  z-index: 10;
+  visibility: hidden;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100vw;
+  width: 100%;
   height: 100vh;
   height: 100dvh;
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: visible;
 }
 
 .panel-greeting-inner {
@@ -105,26 +132,6 @@
   color: inherit;
   font-weight: 800;
   -webkit-font-smoothing: antialiased;
-}
-
-/* Panel 2: Percentage Counter & Progress Bar */
-/* Hidden initially via visibility so 0% never flickers, positioned via GSAP yPercent */
-.preloader-panel-loader {
-  z-index: 5;
-  visibility: hidden;
-  pointer-events: none;
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  width: 100vw;
-  width: 100%;
-  height: 100vh;
-  height: 100dvh;
-  padding: 0;
-  box-sizing: border-box;
-  overflow: visible;
 }
 
 /* Organic curved lower hem that bows downward as the preloader curtain rises */

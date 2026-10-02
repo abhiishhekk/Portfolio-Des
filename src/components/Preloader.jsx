@@ -18,13 +18,14 @@ export default function Preloader({
     'dark';
 
   const containerRef = useRef(null);
-  const greetingPanelRef = useRef(null);
   const loaderPanelRef = useRef(null);
+  const greetingPanelRef = useRef(null);
   const progressBarRef = useRef(null);
   const counterNumRef = useRef(null);
   const curvePathRef = useRef(null);
 
   const [progress, setProgress] = useState(0);
+  const [isGreetingActive, setIsGreetingActive] = useState(false);
   const [isPageLoaded, setIsPageLoaded] = useState(
     typeof document !== 'undefined' && document.readyState === 'complete'
   );
@@ -35,18 +36,21 @@ export default function Preloader({
   onCompleteRef.current = onComplete;
 
   const isPushingRef = useRef(false);
+  const isPushTimelineCompleteRef = useRef(false);
   const isExitingRef = useRef(false);
   const pageLoadedRef = useRef(isPageLoaded);
   pageLoadedRef.current = isPageLoaded;
 
-  const startProgressCounterRef = useRef(null);
+  const pushTimelineRef = useRef(null);
+  const cancelRafRef = useRef(null);
+  const handleUserSkipRef = useRef(null);
 
-  // Trigger the final slide-up exit revealing the site beneath
+  // Trigger the final slide-up exit revealing the site beneath (from the Greeting stage)
   const triggerFinalExit = useCallback(() => {
     if (isExitingRef.current) return;
     isExitingRef.current = true;
 
-    const loaderPanel = loaderPanelRef.current;
+    const greetingPanel = greetingPanelRef.current;
     const container = containerRef.current;
     const curvePath = curvePathRef.current;
 
@@ -70,21 +74,22 @@ export default function Preloader({
       },
     });
 
-    // Fade out percentage counter and progress bar immediately
+    // Fade out greeting handwriting gently as curtain lifts
     tl.to(
-      ['.loader-bottom-bar', '.loader-bar-track'],
+      '.panel-greeting-inner',
       {
         opacity: 0,
-        duration: 0.2,
+        y: -24,
+        duration: 0.28,
         ease: 'power2.out',
       },
       0
     );
 
-    // Slide the loader panel completely up past the top of the viewport like a rising curtain
-    if (loaderPanel) {
+    // Slide the greeting panel completely up past the top of the viewport like a rising curtain
+    if (greetingPanel) {
       tl.to(
-        loaderPanel,
+        greetingPanel,
         {
           yPercent: -125,
           duration: 0.95,
@@ -119,28 +124,44 @@ export default function Preloader({
     }
   }, []);
 
-  // Trigger push transition from multi-language greeting to percentage loader
-  const triggerPushTransition = useCallback(() => {
+  // Trigger push transition from percentage loader (stage 1) to multi-language greeting (stage 2)
+  const triggerPushToGreeting = useCallback(() => {
     if (isPushingRef.current || isExitingRef.current) return;
     isPushingRef.current = true;
 
-    const greetingPanel = greetingPanelRef.current;
+    if (cancelRafRef.current) {
+      cancelRafRef.current();
+    }
+
+    if (progressBarRef.current) {
+      progressBarRef.current.style.width = '100%';
+    }
+    if (counterNumRef.current) {
+      counterNumRef.current.textContent = '100';
+    }
+    setProgress(100);
+
     const loaderPanel = loaderPanelRef.current;
+    const greetingPanel = greetingPanelRef.current;
 
-    if (!greetingPanel || !loaderPanel) return;
+    if (!loaderPanel || !greetingPanel) return;
 
-    gsap.set(loaderPanel, { visibility: 'visible', yPercent: 100 });
+    setIsGreetingActive(true);
+    gsap.set(greetingPanel, { visibility: 'visible', yPercent: 100, force3D: true });
 
     const pushTimeline = gsap.timeline({
-      onStart: () => {
-        if (startProgressCounterRef.current) {
-          startProgressCounterRef.current();
+      onComplete: () => {
+        isPushTimelineCompleteRef.current = true;
+        if (loaderPanel) {
+          gsap.set(loaderPanel, { visibility: 'hidden' });
         }
       },
     });
+    pushTimelineRef.current = pushTimeline;
 
+    // Push progress loader upwards out of view
     pushTimeline.to(
-      greetingPanel,
+      loaderPanel,
       {
         yPercent: -100,
         duration: 0.85,
@@ -150,8 +171,9 @@ export default function Preloader({
       0
     );
 
+    // Push hello screen upwards into view
     pushTimeline.to(
-      loaderPanel,
+      greetingPanel,
       {
         yPercent: 0,
         duration: 0.85,
@@ -162,30 +184,51 @@ export default function Preloader({
     );
   }, []);
 
-  // Called when all 4 languages finish a complete cycle
-  const handleCycleComplete = useCallback(({ isPageLoaded: loaded }) => {
-    if (loaded || pageLoadedRef.current) {
-      triggerPushTransition();
-    }
-  }, [triggerPushTransition]);
+  // Called when all languages finish a complete cycle in AppleHelloLanguages
+  const handleCycleComplete = useCallback(() => {
+    triggerFinalExit();
+  }, [triggerFinalExit]);
 
   // Called when any individual word finishes writing
   const handleWordComplete = useCallback(({ cycleCount }) => {
-    // If we've already done at least 1 full cycle and page is loaded, transition gracefully
-    if (cycleCount >= 1 && pageLoadedRef.current) {
-      triggerPushTransition();
+    if (cycleCount >= 1) {
+      triggerFinalExit();
     }
-  }, [triggerPushTransition]);
+  }, [triggerFinalExit]);
+
+  // Handle skip action (click or keypress)
+  const handleUserSkip = useCallback(() => {
+    if (!isPushingRef.current) {
+      // Still on progress bar stage: advance to greeting
+      triggerPushToGreeting();
+    } else if (isPushTimelineCompleteRef.current && !isExitingRef.current) {
+      // On greeting stage: advance to final curtain exit
+      triggerFinalExit();
+    } else if (isPushingRef.current && !isPushTimelineCompleteRef.current && !isExitingRef.current) {
+      // Mid-push transition: immediately finish push and exit
+      pushTimelineRef.current?.kill();
+      if (loaderPanelRef.current) {
+        gsap.set(loaderPanelRef.current, { yPercent: -100, visibility: 'hidden' });
+      }
+      if (greetingPanelRef.current) {
+        gsap.set(greetingPanelRef.current, { yPercent: 0, visibility: 'visible' });
+      }
+      isPushTimelineCompleteRef.current = true;
+      triggerFinalExit();
+    }
+  }, [triggerPushToGreeting, triggerFinalExit]);
+
+  handleUserSkipRef.current = handleUserSkip;
 
   useEffect(() => {
     lockScroll({ forceTop: true });
 
-    const greetingPanel = greetingPanelRef.current;
     const loaderPanel = loaderPanelRef.current;
+    const greetingPanel = greetingPanelRef.current;
 
-    if (greetingPanel && loaderPanel) {
-      gsap.set(greetingPanel, { yPercent: 0, visibility: 'visible', force3D: true });
-      gsap.set(loaderPanel, { yPercent: 100, visibility: 'hidden', force3D: true });
+    if (loaderPanel && greetingPanel) {
+      gsap.set(loaderPanel, { yPercent: 0, visibility: 'visible', force3D: true });
+      gsap.set(greetingPanel, { yPercent: 100, visibility: 'hidden', force3D: true });
     }
 
     let rafId = null;
@@ -211,9 +254,9 @@ export default function Preloader({
       }
     }
 
-    // Start counting from 0% to 100%
+    // Start counting from 0% to 100% immediately on mount (Stage 1)
     const startProgressCounter = () => {
-      if (progressStarted || isExitingRef.current) return;
+      if (progressStarted || isPushingRef.current || isExitingRef.current) return;
       progressStarted = true;
 
       const normalDuration = 1000;
@@ -227,7 +270,7 @@ export default function Preloader({
       let lastFrameTime = performance.now();
 
       const tick = (now) => {
-        if (isExitingRef.current) return;
+        if (isPushingRef.current || isExitingRef.current) return;
 
         const isCurrentlyLoaded = pageLoadedRef.current;
         const dt = Math.min((now - lastFrameTime) / 1000, 0.05);
@@ -276,12 +319,19 @@ export default function Preloader({
           renderedProgressFloat = 99.2;
         }
 
-        const isComplete = isCurrentlyLoaded && targetProgressFloat >= 99.9 && (100 - renderedProgressFloat) <= 0.2;
+        const isComplete =
+          isCurrentlyLoaded &&
+          targetProgressFloat >= 99.9 &&
+          (100 - renderedProgressFloat) <= 0.2;
+
         if (isComplete) {
           renderedProgressFloat = 100;
         }
 
-        const displayInt = Math.min(Math.floor(renderedProgressFloat), isCurrentlyLoaded ? 100 : 99);
+        const displayInt = Math.min(
+          Math.floor(renderedProgressFloat),
+          isCurrentlyLoaded ? 100 : 99
+        );
         lastDisplayInt = Math.max(lastDisplayInt, displayInt);
 
         if (progressBarRef.current) {
@@ -295,28 +345,40 @@ export default function Preloader({
         if (!isComplete) {
           rafId = requestAnimationFrame(tick);
         } else {
+          // Brief hold at 100% so user registers completion, then push to greeting screen
           setTimeout(() => {
-            triggerFinalExit();
-          }, 100);
+            triggerPushToGreeting();
+          }, 180);
         }
       };
 
       rafId = requestAnimationFrame(tick);
     };
 
-    startProgressCounterRef.current = startProgressCounter;
+    cancelRafRef.current = () => {
+      if (rafId) {
+        cancelAnimationFrame(rafId);
+        rafId = null;
+      }
+    };
 
-    // Safety timeout: automatically transition after max 14s even if network is slow
+    // Kick off progress counter right away
+    startProgressCounter();
+
+    // Safety timeout: automatically transition if page is taking unusually long
     const safetyTimer = setTimeout(() => {
       markLoaded();
-      triggerPushTransition();
+      if (!isPushingRef.current) {
+        triggerPushToGreeting();
+      } else if (!isExitingRef.current) {
+        triggerFinalExit();
+      }
     }, 14000);
 
     // Keyboard shortcut (Space, Enter, Esc) to skip intro quickly
     const handleKeyDown = (e) => {
       if (['Space', 'Enter', 'Escape'].includes(e.code) || e.key === ' ' || e.key === 'Enter') {
-        markLoaded();
-        triggerPushTransition();
+        handleUserSkipRef.current?.();
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -326,9 +388,10 @@ export default function Preloader({
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('load', markLoaded);
       if (rafId) cancelAnimationFrame(rafId);
+      pushTimelineRef.current?.kill();
       unlockScroll();
     };
-  }, [triggerFinalExit, triggerPushTransition]);
+  }, [triggerFinalExit, triggerPushToGreeting]);
 
   return (
     <div
@@ -337,24 +400,10 @@ export default function Preloader({
       data-theme={currentTheme}
       aria-label="Loading portfolio"
       role="status"
-      onClick={triggerPushTransition}
+      onClick={handleUserSkip}
       style={{ cursor: 'pointer' }}
     >
-      {/* 1st: Theme-aware Apple Hello Multi-Language Greeting Panel */}
-      <div
-        ref={greetingPanelRef}
-        className="preloader-panel preloader-panel-greeting"
-      >
-        <div className="panel-greeting-inner">
-          <AppleHelloLanguages
-            isPageLoaded={isPageLoaded}
-            onCycleComplete={handleCycleComplete}
-            onWordComplete={handleWordComplete}
-          />
-        </div>
-      </div>
-
-      {/* 2nd: Percentage Counter & Progress Bar Panel (pushes up from below) */}
+      {/* 1st Stage: Percentage Counter & Progress Bar Panel (Immediate on Mount) */}
       <div
         ref={loaderPanelRef}
         className="preloader-panel preloader-panel-loader"
@@ -368,12 +417,28 @@ export default function Preloader({
           />
         </div>
 
-        {/* Right Bottom Corner: Only the Percentage Counter */}
+        {/* Right Bottom Corner: Percentage Counter */}
         <div className="loader-bottom-bar">
           <div className="loader-counter-wrap">
             <span ref={counterNumRef} className="loader-counter-num">{progress}</span>
             <span className="loader-counter-unit">%</span>
           </div>
+        </div>
+      </div>
+
+      {/* 2nd Stage: Theme-aware Apple Hello Multi-Language Greeting Panel (Pushes up from below) */}
+      <div
+        ref={greetingPanelRef}
+        className="preloader-panel preloader-panel-greeting"
+      >
+        <div className="panel-greeting-inner">
+          {isGreetingActive && (
+            <AppleHelloLanguages
+              isPageLoaded={isPageLoaded}
+              onCycleComplete={handleCycleComplete}
+              onWordComplete={handleWordComplete}
+            />
+          )}
         </div>
 
         {/* Curved lower hem that bows downward as the curtain rises */}
