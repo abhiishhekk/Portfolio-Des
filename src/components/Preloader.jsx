@@ -132,23 +132,57 @@ export default function Preloader({
     let rafId = null;
     let pushTimeline = null;
     let progressStarted = false;
+    let cleanupLoadListeners = null;
 
     // Start counting from 0% to 100%
     const startProgressCounter = () => {
       if (progressStarted || isExitingRef.current) return;
       progressStarted = true;
 
-      const minDuration = 1500; // Minimum 1.5s as requested
+      const minDuration = 1500; // Minimum duration for natural progression
       const startTime = performance.now();
-      let pageLoaded = typeof document !== 'undefined' && document.readyState === 'complete';
       let finishStartTime = null;
       let finishStartProgress = 0;
 
-      const handleWindowLoad = () => {
-        pageLoaded = true;
+      // Helper to check if page document and all images are fully loaded
+      const isPageFullyLoaded = () => {
+        if (typeof document === 'undefined') return true;
+        if (document.readyState !== 'complete') return false;
+        if (document.images && document.images.length > 0) {
+          for (let i = 0; i < document.images.length; i++) {
+            if (!document.images[i].complete) return false;
+          }
+        }
+        return true;
       };
+
+      let pageLoaded = isPageFullyLoaded();
+
+      const markLoaded = () => {
+        if (isPageFullyLoaded()) {
+          pageLoaded = true;
+        }
+      };
+
       if (!pageLoaded && typeof window !== 'undefined') {
-        window.addEventListener('load', handleWindowLoad);
+        window.addEventListener('load', markLoaded, { once: true });
+        const imgCleanups = [];
+        if (typeof document !== 'undefined' && document.images) {
+          Array.from(document.images).forEach((img) => {
+            if (!img.complete) {
+              img.addEventListener('load', markLoaded, { once: true });
+              img.addEventListener('error', markLoaded, { once: true });
+              imgCleanups.push(() => {
+                img.removeEventListener('load', markLoaded);
+                img.removeEventListener('error', markLoaded);
+              });
+            }
+          });
+        }
+        cleanupLoadListeners = () => {
+          window.removeEventListener('load', markLoaded);
+          imgCleanups.forEach((fn) => fn());
+        };
       }
 
       let lastProgress = 0;
@@ -156,8 +190,8 @@ export default function Preloader({
       const tick = (now) => {
         if (isExitingRef.current) return;
 
-        // Check live document readyState in case load event fired silently
-        if (!pageLoaded && typeof document !== 'undefined' && document.readyState === 'complete') {
+        // Continuously check if page load has completed
+        if (!pageLoaded && isPageFullyLoaded()) {
           pageLoaded = true;
         }
 
@@ -166,16 +200,17 @@ export default function Preloader({
 
         if (!pageLoaded) {
           // Page NOT yet loaded:
-          // CANNOT reach 100 under any circumstance while page is still loading!
-          if (elapsed <= 1300) {
-            // Smooth progress from 0% to 90% over 1300ms
-            currentVal = Math.min(Math.floor((elapsed / 1300) * 90), 90);
+          // 1. Smoothly advance up to 90% over 1250ms
+          // 2. Beyond 90%: DO NOT WAIT OR STAY STUCK AT 90!
+          //    Continue progressing forward very slowly (91, 92, 93... up to 99 max)
+          // 3. Guaranteed NEVER to hit 100 while page is still loading
+          if (elapsed <= 1250) {
+            currentVal = Math.min(Math.floor((elapsed / 1250) * 90), 90);
           } else {
-            // Beyond 1300ms: Do NOT stay stuck at 90! Slowly creep upward (91, 92, 93... up to 98 max)
-            const overTime = elapsed - 1300;
-            // Every ~550ms gently advance by 1% so the user sees it is actively working, capped strictly at 98
-            const creep = Math.min(Math.floor(overTime / 550), 8);
-            currentVal = Math.min(90 + creep, 98);
+            const overTime = elapsed - 1250;
+            // Progresses slowly: advances 1% every ~450ms, strictly capped at 99
+            const creep = Math.min(Math.floor(overTime / 450), 9);
+            currentVal = Math.min(90 + creep, 99);
           }
         } else {
           // Page IS completely loaded:
@@ -185,16 +220,18 @@ export default function Preloader({
           }
 
           if (elapsed < minDuration) {
-            // Fast page load: continue smoothly at natural pace from 0 to 100 over minDuration
+            // Page loaded early: glide smoothly to 100 at natural pace over minDuration
             const naturalRatio = elapsed / minDuration;
             currentVal = Math.min(Math.floor(naturalRatio * 100), 100);
           } else {
-            // Page finished after minDuration:
-            // Glide smoothly from current progress (e.g. 92% or 95%) to 100% over a natural 240ms pace
+            // Page finished loading while creeping past 90 (or after minDuration):
+            // Smoothly glide from current progress (e.g. 91%, 94%, 97%) to 100% at its natural pace
+            const remaining = Math.max(1, 100 - finishStartProgress);
+            const finishDuration = Math.max(240, remaining * 30);
             const finishElapsed = now - finishStartTime;
-            const finishRatio = Math.min(finishElapsed / 240, 1);
+            const finishRatio = Math.min(finishElapsed / finishDuration, 1);
             currentVal = Math.min(
-              Math.floor(finishStartProgress + finishRatio * (100 - finishStartProgress)),
+              Math.floor(finishStartProgress + finishRatio * remaining),
               100
             );
           }
@@ -203,9 +240,9 @@ export default function Preloader({
         // Strictly monotonic forward progress
         lastProgress = Math.max(lastProgress, currentVal);
 
-        // Strict guarantee: CANNOT reach 100 unless page is fully loaded
-        if (!pageLoaded && lastProgress >= 99) {
-          lastProgress = 98;
+        // Strict guarantee: CANNOT reach 100 until page is completely loaded
+        if (!pageLoaded && lastProgress >= 100) {
+          lastProgress = 99;
         }
 
         // TIGHT SYNCHRONOUS COUPLING:
@@ -273,6 +310,7 @@ export default function Preloader({
     return () => {
       clearTimeout(pushTimer);
       if (rafId) cancelAnimationFrame(rafId);
+      cleanupLoadListeners?.();
       pushTimeline?.kill();
       unlockScroll();
     };
