@@ -177,7 +177,8 @@ export default function Preloader({
         }
       };
 
-      let lastProgress = 0;
+      let lastProgressFloat = 0;
+      let lastDisplayInt = 0;
 
       const tick = (now) => {
         if (isExitingRef.current) return;
@@ -187,71 +188,77 @@ export default function Preloader({
         }
 
         const elapsed = now - startTime;
-        let currentVal = 0;
+        let currentValFloat = 0;
 
         if (!pageLoaded) {
           // Page is STILL loading:
-          // 1. Advance energetically and smoothly to 90% in ~800ms
-          // 2. Beyond 90%: DO NOT WAIT OR GET STUCK AT 90!
-          //    Creep forward steadily: 91, 92, 93... up to 99 max (1% every ~160ms)
-          // 3. Guaranteed NEVER to hit 100 while page is still loading
-          if (elapsed <= 800) {
-            const ratio = elapsed / 800;
-            // Ease-out quad for smooth start and graceful deceleration towards 90
+          // Loading check is now at 50%:
+          // 1. From 0 to 50%: smooth ease-out progression over 450ms
+          // 2. Beyond 50%: DO NOT WAIT OR FREEZE AT 50!
+          //    Progresses very smoothly and continuously (subpixel fluid motion)
+          //    towards 99% using a smooth exponential deceleration curve:
+          //    50 + 49 * (1 - e^(-overTime / 2400))
+          if (elapsed <= 450) {
+            const ratio = elapsed / 450;
             const ease = 1 - (1 - ratio) * (1 - ratio);
-            currentVal = Math.min(Math.floor(ease * 90), 90);
+            currentValFloat = ease * 50;
           } else {
-            const overTime = elapsed - 800;
-            const creep = Math.min(Math.floor(overTime / 160), 9);
-            currentVal = Math.min(90 + creep, 99);
+            const overTime = elapsed - 450;
+            // Continuous asymptotic growth from 50 towards 99:
+            // Fluid on every single frame, capped strictly at 99.2
+            const continuousPast50 = 49 * (1 - Math.exp(-overTime / 2400));
+            currentValFloat = Math.min(50 + continuousPast50, 99.2);
           }
         } else {
           // Page IS completely loaded:
           if (finishStartTime === null) {
             finishStartTime = now;
-            finishStartProgress = lastProgress;
+            finishStartProgress = lastProgressFloat;
           }
 
-          if (finishStartProgress < 90 && elapsed < normalDuration) {
-            // Page was loaded initially or early:
-            // Glide smoothly from 0 to 100 at natural pace over normalDuration
+          if (finishStartProgress < 50 && elapsed < normalDuration) {
+            // Page loaded early (before 50%):
+            // Glide smoothly from 0 to 100 at natural pace over normalDuration (no slowdown at 50)
             const ratio = Math.min(elapsed / normalDuration, 1);
-            // Smooth ease in-out
             const ease = ratio < 0.5 ? 2 * ratio * ratio : 1 - Math.pow(-2 * ratio + 2, 2) / 2;
-            currentVal = Math.min(Math.floor(ease * 100), 100);
+            currentValFloat = ease * 100;
           } else {
-            // Page finished loading while waiting at 90, 91, 92, etc. (or after normalDuration):
-            // Smoothly complete the remaining distance to 100 at natural, brisk pace (~180-260ms)
-            const remaining = Math.max(1, 100 - finishStartProgress);
-            const finishDuration = Math.min(260, Math.max(180, remaining * 24));
+            // Page finished loading while waiting past 50 (e.g. at 52%, 67%, 85%, etc.)
+            // or after normalDuration:
+            // Seamlessly and smoothly complete the remaining distance to 100 at its natural pace
+            const remaining = Math.max(0.5, 100 - finishStartProgress);
+            const finishDuration = Math.min(320, Math.max(180, remaining * 5));
             const finishElapsed = now - finishStartTime;
             const finishRatio = Math.min(finishElapsed / finishDuration, 1);
-            currentVal = Math.min(
-              Math.floor(finishStartProgress + finishRatio * remaining),
-              100
-            );
+            // Smooth cubic ease-out to 100
+            const easeOut = 1 - Math.pow(1 - finishRatio, 3);
+            currentValFloat = Math.min(finishStartProgress + easeOut * remaining, 100);
           }
         }
 
         // Strictly monotonic forward progress
-        lastProgress = Math.max(lastProgress, currentVal);
+        lastProgressFloat = Math.max(lastProgressFloat, currentValFloat);
 
         // Strict guarantee: CANNOT reach 100 until page is completely loaded
-        if (!pageLoaded && lastProgress >= 100) {
-          lastProgress = 99;
+        if (!pageLoaded && lastProgressFloat >= 100) {
+          lastProgressFloat = 99.2;
         }
+
+        const displayInt = Math.min(Math.floor(lastProgressFloat), pageLoaded ? 100 : 99);
+        lastDisplayInt = Math.max(lastDisplayInt, displayInt);
 
         // TIGHT SYNCHRONOUS COUPLING:
-        // Direct DOM write to both the progress bar fill and the counter number on the exact same frame
+        // Progress bar width is updated with floating-point subpixel precision on every frame
+        // so it glides with continuous silky smoothness even when loading takes longer
         if (progressBarRef.current) {
-          progressBarRef.current.style.width = `${lastProgress}%`;
+          progressBarRef.current.style.width = `${lastProgressFloat}%`;
         }
         if (counterNumRef.current) {
-          counterNumRef.current.textContent = String(lastProgress);
+          counterNumRef.current.textContent = String(lastDisplayInt);
         }
-        setProgress(lastProgress);
+        setProgress(lastDisplayInt);
 
-        if (lastProgress < 100 || !pageLoaded) {
+        if (lastProgressFloat < 100 || !pageLoaded) {
           rafId = requestAnimationFrame(tick);
         } else {
           // Hit 100% AND page is 100% loaded: brief pause (100ms) then slide curtain up to reveal site
