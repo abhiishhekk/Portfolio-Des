@@ -141,8 +141,8 @@ export default function Preloader({
       const minDuration = 1500; // Minimum 1.5s as requested
       const startTime = performance.now();
       let pageLoaded = typeof document !== 'undefined' && document.readyState === 'complete';
-      let resumeTime = null;
-      let resumeFrom = 90;
+      let finishStartTime = null;
+      let finishStartProgress = 0;
 
       const handleWindowLoad = () => {
         pageLoaded = true;
@@ -165,37 +165,48 @@ export default function Preloader({
         let currentVal = 0;
 
         if (!pageLoaded) {
-          // Page still loading: count up smoothly to 90% over 1350ms, then hold at 90%
-          const ratioTo90 = Math.min(elapsed / 1350, 1);
-          currentVal = Math.min(Math.floor(ratioTo90 * 90), 90);
-        } else {
-          // Page is loaded:
-          if (elapsed < minDuration) {
-            // If still within 1.5s minimum (page loaded fast), glide continuously from 0 to 100
-            // without any pause or noticeable wait at 90
-            const totalRatio = elapsed / minDuration;
-            currentVal = Math.min(Math.floor(totalRatio * 100), 99);
+          // Page NOT yet loaded:
+          // CANNOT reach 100 under any circumstance while page is still loading!
+          if (elapsed <= 1300) {
+            // Smooth progress from 0% to 90% over 1300ms
+            currentVal = Math.min(Math.floor((elapsed / 1300) * 90), 90);
           } else {
-            // 1.5s has elapsed:
-            if (lastProgress < 90) {
-              currentVal = 100;
-            } else if (lastProgress >= 90 && lastProgress < 100) {
-              // It was waiting at 90% and page just finished loading:
-              // seamlessly finish the remaining 90 -> 100 over a quick, smooth 220ms
-              if (resumeTime === null) {
-                resumeTime = now;
-                resumeFrom = lastProgress;
-              }
-              const finishRatio = Math.min((now - resumeTime) / 220, 1);
-              currentVal = Math.min(Math.floor(resumeFrom + finishRatio * (100 - resumeFrom)), 100);
-            } else {
-              currentVal = 100;
-            }
+            // Beyond 1300ms: Do NOT stay stuck at 90! Slowly creep upward (91, 92, 93... up to 98 max)
+            const overTime = elapsed - 1300;
+            // Every ~550ms gently advance by 1% so the user sees it is actively working, capped strictly at 98
+            const creep = Math.min(Math.floor(overTime / 550), 8);
+            currentVal = Math.min(90 + creep, 98);
+          }
+        } else {
+          // Page IS completely loaded:
+          if (finishStartTime === null) {
+            finishStartTime = now;
+            finishStartProgress = lastProgress;
+          }
+
+          if (elapsed < minDuration) {
+            // Fast page load: continue smoothly at natural pace from 0 to 100 over minDuration
+            const naturalRatio = elapsed / minDuration;
+            currentVal = Math.min(Math.floor(naturalRatio * 100), 100);
+          } else {
+            // Page finished after minDuration:
+            // Glide smoothly from current progress (e.g. 92% or 95%) to 100% over a natural 240ms pace
+            const finishElapsed = now - finishStartTime;
+            const finishRatio = Math.min(finishElapsed / 240, 1);
+            currentVal = Math.min(
+              Math.floor(finishStartProgress + finishRatio * (100 - finishStartProgress)),
+              100
+            );
           }
         }
 
         // Strictly monotonic forward progress
         lastProgress = Math.max(lastProgress, currentVal);
+
+        // Strict guarantee: CANNOT reach 100 unless page is fully loaded
+        if (!pageLoaded && lastProgress >= 99) {
+          lastProgress = 98;
+        }
 
         // TIGHT SYNCHRONOUS COUPLING:
         // Direct DOM write to both the progress bar fill and the counter number on the exact same frame
@@ -207,10 +218,10 @@ export default function Preloader({
         }
         setProgress(lastProgress);
 
-        if (lastProgress < 100) {
+        if (lastProgress < 100 || !pageLoaded) {
           rafId = requestAnimationFrame(tick);
         } else {
-          // Hit 100%: brief pause then slide curtain up to reveal site
+          // Hit 100% AND page is 100% loaded: brief pause then slide curtain up to reveal site
           setTimeout(() => {
             triggerFinalExit();
           }, 140);
