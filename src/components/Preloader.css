@@ -98,14 +98,20 @@
   padding: 4px 16px;
 }
 
-.greeting-prefix {
+.greeting-reveal-item {
   display: inline-block;
+  will-change: transform, opacity;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.greeting-prefix {
   opacity: 0.9;
   -webkit-font-smoothing: antialiased;
 }
 
 .greeting-name {
-  display: inline-block;
   color: inherit;
   font-weight: 800;
   -webkit-font-smoothing: antialiased;

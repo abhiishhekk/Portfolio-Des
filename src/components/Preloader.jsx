@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import gsap from 'gsap';
-import AnimatedContent from './AnimatedContent';
 import { lockScroll, unlockScroll } from '../utils/scrollLock';
 import './Preloader.css';
 
@@ -284,7 +283,25 @@ export default function Preloader({
       rafId = requestAnimationFrame(tick);
     };
 
-    // Flow Step 1: Greeting animates in, holds for ~1s
+    // Hardware-accelerated smooth entrance for greeting text
+    const greetingTl = gsap.timeline({ delay: 0.08 });
+    greetingTl.fromTo(
+      '.greeting-reveal-item',
+      {
+        y: 45,
+        opacity: 0,
+      },
+      {
+        y: 0,
+        opacity: 1,
+        duration: 0.8,
+        stagger: 0.14,
+        ease: 'power3.out',
+        force3D: true,
+      }
+    );
+
+    // Flow Step 1: Greeting animates in smoothly, holds comfortably so user can easily read it
     // Flow Step 2: Push transition where greeting goes UP and loader percentage pushes UP from down
     const pushTimer = setTimeout(() => {
       // Make loader visible before animating up
@@ -321,12 +338,13 @@ export default function Preloader({
         },
         0
       );
-    }, 1300);
+    }, 1850);
 
     return () => {
       clearTimeout(pushTimer);
       if (rafId) cancelAnimationFrame(rafId);
       cleanupLoadListeners?.();
+      greetingTl?.kill();
       pushTimeline?.kill();
       unlockScroll();
     };
@@ -340,7 +358,7 @@ export default function Preloader({
       aria-label="Loading portfolio"
       role="status"
     >
-      {/* 1st: Theme-aware Name Greeting Panel with ultra-smooth AnimatedContent */}
+      {/* 1st: Theme-aware Name Greeting Panel with silky-smooth hardware-accelerated entrance */}
       <div
         ref={greetingPanelRef}
         className="preloader-panel preloader-panel-greeting"
@@ -348,30 +366,10 @@ export default function Preloader({
         <div className="panel-greeting-inner">
           <h1 className="preloader-greeting-text" aria-label="Hello, I am Abhishek">
             <span className="greeting-line">
-              <AnimatedContent
-                direction="vertical"
-                distance={55}
-                duration={0.88}
-                ease="cubic-bezier(0.16, 1, 0.3, 1)"
-                scrollTrigger={false}
-                animateOpacity={true}
-                delay={0.05}
-              >
-                <span className="greeting-prefix">Hello, I am</span>
-              </AnimatedContent>
+              <span className="greeting-reveal-item greeting-prefix">Hello, I am</span>
             </span>
             <span className="greeting-line">
-              <AnimatedContent
-                direction="vertical"
-                distance={70}
-                duration={0.94}
-                ease="cubic-bezier(0.16, 1, 0.3, 1)"
-                scrollTrigger={false}
-                animateOpacity={true}
-                delay={0.18}
-              >
-                <span className="greeting-name">Abhishek</span>
-              </AnimatedContent>
+              <span className="greeting-reveal-item greeting-name">Abhishek</span>
             </span>
           </h1>
         </div>
