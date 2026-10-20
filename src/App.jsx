@@ -53,6 +53,7 @@ export default function App() {
         }}
       >
       <SplashCursor
+        theme={theme}
         RAINBOW_MODE={false}
         COLOR={theme === 'dark' ? '#ffffff' : '#000000'}
       />

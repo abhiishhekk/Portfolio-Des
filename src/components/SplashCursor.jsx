@@ -1,6 +1,27 @@
 'use client';
 import { useEffect, useRef } from 'react';
 
+function parseHexRGB(hex) {
+  if (!hex || typeof hex !== 'string') return { r: 0.15, g: 0.15, b: 0.15 };
+  let val = hex.replace('#', '').trim();
+  if (val.length === 3) val = val[0] + val[0] + val[1] + val[1] + val[2] + val[2];
+  if (val.length === 8) val = val.slice(0, 6);
+  if (val.length !== 6) return { r: 0.15, g: 0.15, b: 0.15 };
+  const r = parseInt(val.slice(0, 2), 16) / 255;
+  const g = parseInt(val.slice(2, 4), 16) / 255;
+  const b = parseInt(val.slice(4, 6), 16) / 255;
+  return {
+    r: isNaN(r) ? 0.15 : r,
+    g: isNaN(g) ? 0.15 : g,
+    b: isNaN(b) ? 0.15 : b
+  };
+}
+
+function isDarkColor(hex) {
+  const rgb = parseHexRGB(hex);
+  return (rgb.r * 255 * 0.299 + rgb.g * 255 * 0.587 + rgb.b * 255 * 0.114) < 120;
+}
+
 function SplashCursor({
   SIM_RESOLUTION = 128,
   DYE_RESOLUTION = 1440,
@@ -18,6 +39,7 @@ function SplashCursor({
   TRANSPARENT = true,
   RAINBOW_MODE = true,
   COLOR = '#ff0000',
+  theme,
   zIndex = 50
 }) {
   const canvasRef = useRef(null);
@@ -28,8 +50,9 @@ function SplashCursor({
     if (configRef.current) {
       configRef.current.COLOR = COLOR;
       configRef.current.RAINBOW_MODE = RAINBOW_MODE;
+      configRef.current.THEME = theme;
     }
-  }, [COLOR, RAINBOW_MODE]);
+  }, [COLOR, RAINBOW_MODE, theme]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -68,7 +91,8 @@ function SplashCursor({
       BACK_COLOR,
       TRANSPARENT,
       RAINBOW_MODE,
-      COLOR
+      COLOR,
+      THEME: theme
     };
     configRef.current = config;
 
@@ -822,7 +846,8 @@ function SplashCursor({
     function splatPointer(pointer) {
       let dx = pointer.deltaX * config.SPLAT_FORCE;
       let dy = pointer.deltaY * config.SPLAT_FORCE;
-      splat(pointer.texcoordX, pointer.texcoordY, dx, dy, pointer.color);
+      let color = config.RAINBOW_MODE ? pointer.color : generateColor();
+      splat(pointer.texcoordX, pointer.texcoordY, dx, dy, color);
     }
 
     function clickSplat(pointer) {
@@ -898,17 +923,13 @@ function SplashCursor({
     }
 
     function hexToRGB(hex) {
-      let val = hex.replace('#', '');
-      if (val.length === 3) val = val[0] + val[0] + val[1] + val[1] + val[2] + val[2];
-      const r = parseInt(val.slice(0, 2), 16) / 255;
-      const g = parseInt(val.slice(2, 4), 16) / 255;
-      const b = parseInt(val.slice(4, 6), 16) / 255;
-      return { r: r * 0.15, g: g * 0.15, b: b * 0.15 };
+      const rgb = parseHexRGB(hex);
+      return { r: rgb.r * 0.15, g: rgb.g * 0.15, b: rgb.b * 0.15 };
     }
 
     function generateColor() {
       if (!config.RAINBOW_MODE) {
-        if (config.COLOR === '#000000' || config.COLOR === '#060505') {
+        if (config.THEME === 'light' || isDarkColor(config.COLOR)) {
           return { r: 0.15, g: 0.15, b: 0.15 };
         }
         return hexToRGB(config.COLOR);
@@ -1074,6 +1095,8 @@ function SplashCursor({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const isNegative = theme === 'light' || (!RAINBOW_MODE && isDarkColor(COLOR));
+
   return (
     <div
       style={{
@@ -1092,7 +1115,9 @@ function SplashCursor({
         style={{
           width: '100vw',
           height: '100vh',
-          display: 'block'
+          display: 'block',
+          filter: isNegative ? 'invert(1)' : 'none',
+          transition: 'filter 0.3s ease'
         }}
       />
     </div>
