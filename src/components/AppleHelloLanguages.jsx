@@ -5,7 +5,7 @@ import { AppleHelloEffectHindi } from "./apple-hello-effect/apple-hello-effect-h
 import { AppleHelloEffectSpanish } from "./apple-hello-effect/apple-hello-effect-spanish"
 import "./AppleHelloLanguages.css"
 
-const LANGUAGES = ['english', 'hindi', 'spanish']
+const LANGUAGES = ['english', 'hindi']
 
 export default function AppleHelloLanguages({
   onWordComplete,
